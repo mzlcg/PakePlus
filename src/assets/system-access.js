@@ -138,6 +138,37 @@
     }
   };
 
+  const loadScript = (src) =>
+    new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () =>
+        reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+
+  const loadDataAsset = async ({ jsonPath, scriptPath, globalKey }) => {
+    if (window.location.protocol !== "file:") {
+      const response = await fetch(jsonPath);
+      if (!response.ok) {
+        throw new Error(`Failed to load ${jsonPath}: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    if (window[globalKey]) {
+      return window[globalKey];
+    }
+
+    await loadScript(scriptPath);
+    if (!window[globalKey]) {
+      throw new Error(`Missing global data after loading ${scriptPath}`);
+    }
+    return window[globalKey];
+  };
+
   window.SystemAccess = {
     users: USERS.map(({ username, password, role, displayName }) => ({
       username,
@@ -156,5 +187,6 @@
     requireAuth,
     redirectAuthenticatedUser,
     mountUserPanel,
+    loadDataAsset,
   };
 })();
