@@ -1,5 +1,6 @@
 (function () {
-  const data = window.VPP_MARKET_DATA;
+  function createMarketUI(dataSource) {
+  const data = dataSource || {};
   const chartText = "#cbd5e1";
   const gridLine = "rgba(51, 65, 85, 0.55)";
   const colors = {
@@ -168,28 +169,34 @@
   const axisLine = { lineStyle: { color: "#334155" } };
   const dashedGrid = { lineStyle: { color: gridLine, type: "dashed" } };
 
-  window.MarketUI = {
-    data,
-    colors,
-    chartText,
-    gridLine,
-    chartBase,
-    axisLine,
-    dashedGrid,
-    years,
-    dates,
-    selectedYear,
-    selectedDate,
-    yearData,
-    dailySeries,
-    previousYearData,
-    initYearSelector,
-    initDateInput,
-    setText,
-    number,
-    rawNumber,
-    trend,
-    annualRevenueByVpp,
-    sourceRows,
-  };
+    return {
+      data,
+      colors,
+      chartText,
+      gridLine,
+      chartBase,
+      axisLine,
+      dashedGrid,
+      years,
+      dates,
+      selectedYear,
+      selectedDate,
+      yearData,
+      dailySeries,
+      previousYearData,
+      initYearSelector,
+      initDateInput,
+      setText,
+      number,
+      rawNumber,
+      trend,
+      annualRevenueByVpp,
+      sourceRows,
+    };
+  }
+
+  window.createMarketUI = createMarketUI;
+  if (window.VPP_MARKET_DATA) {
+    window.MarketUI = createMarketUI(window.VPP_MARKET_DATA);
+  }
 })();
