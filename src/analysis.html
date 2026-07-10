@@ -17,7 +17,6 @@
     <script>
       window.SystemAccess.requireAuth("analysis.html");
     </script>
-    <script src="assets/visual-data.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
@@ -721,7 +720,15 @@
     <script src="assets/analysis-visualization.js"></script>
     <script src="assets/analysis-training-curves.js"></script>
     <script>
-      (() => {
+      (async () => {
+        const visualData = await window.SystemAccess.loadDataAsset({
+          jsonPath: "assets/visual-data.json",
+          scriptPath: "assets/visual-data.js",
+          globalKey: "VPP_VISUAL_DATA",
+        });
+        window.AnalysisVisualization =
+          window.createAnalysisVisualization(visualData);
+
         window.SystemAccess.mountUserPanel("sessionPanel");
         const { createApp, reactive } = Vue;
         const analysis = window.AnalysisVisualization;
@@ -820,7 +827,9 @@
         })
           .use(ElementPlus)
           .mount("#analysisTabApp");
-      })();
+      })().catch((error) => {
+        console.error("Failed to initialize analysis.html", error);
+      });
     </script>
   </body>
 </html>
