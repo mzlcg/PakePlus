@@ -1,0 +1,2024 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>系统总览 - GridPulse AI </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="assets/market-ui.js"></script>
+    <script src="assets/system-access.js"></script>
+    <script>
+      window.SystemAccess.requireAuth("index.html");
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+      body {
+        margin: 0;
+        font-family: "Inter", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 26%),
+          radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 24%),
+          linear-gradient(180deg, #020617 0%, #0b1120 100%);
+        color: #f8fafc;
+      }
+
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .sidebar-item-active {
+        background: linear-gradient(
+          90deg,
+          rgba(56, 189, 248, 0.2) 0%,
+          rgba(56, 189, 248, 0.04) 100%
+        );
+        border-left: 4px solid #38bdf8;
+        color: #e0f2fe;
+      }
+
+      .section-shell {
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        background: rgba(15, 23, 42, 0.62);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      .section-heading {
+        background: linear-gradient(
+          90deg,
+          rgba(14, 116, 144, 0.22) 0%,
+          rgba(30, 41, 59, 0.1) 100%
+        );
+        border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+      }
+
+      .metric-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        background:
+          linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.72) 100%);
+      }
+
+      .metric-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), transparent 55%);
+        pointer-events: none;
+      }
+
+      .chart-card {
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        background: rgba(15, 23, 42, 0.82);
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-chip::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .control-select {
+        width: 100%;
+        appearance: none;
+        border-radius: 12px;
+        border: 1px solid rgba(71, 85, 105, 0.9);
+        background: rgba(2, 6, 23, 0.7);
+        color: #f8fafc;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 10px 42px 10px 14px;
+        outline: none;
+      }
+
+      .control-select:focus {
+        border-color: rgba(96, 165, 250, 0.95);
+      }
+
+      .select-wrap {
+        position: relative;
+      }
+
+      .select-wrap::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        width: 8px;
+        height: 8px;
+        margin-top: -6px;
+        border-right: 2px solid #94a3b8;
+        border-bottom: 2px solid #94a3b8;
+        transform: rotate(45deg);
+        pointer-events: none;
+      }
+
+      .info-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+      }
+
+      .info-row:last-child {
+        border-bottom: 0;
+      }
+
+      .info-label {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      .info-value {
+        color: #e2e8f0;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .chart-host-lg {
+        width: 100%;
+        height: 320px;
+      }
+
+      .chart-host-md {
+        width: 100%;
+        height: 260px;
+      }
+
+      .chart-host-sm {
+        width: 100%;
+        height: 220px;
+      }
+
+      .mini-table th,
+      .mini-table td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.55);
+      }
+
+      .mini-table th {
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .mini-table td {
+        color: #e2e8f0;
+        font-size: 13px;
+      }
+
+      .mini-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .timeline-item {
+        position: relative;
+        padding-left: 18px;
+      }
+
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 7px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #38bdf8;
+      }
+
+      @media (max-width: 1279px) {
+        body {
+          overflow: auto;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen">
+    <aside class="w-64 glass-panel flex flex-col h-screen sticky top-0 z-50">
+      <div class="p-6 flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/30"
+        >
+          <span class="iconify text-2xl" data-icon="mdi:transmission-tower"></span>
+        </div>
+        <div>
+          <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
+          <!-- <div class="text-xs text-slate-400 mt-0.5">虚拟电厂报价平台</div> -->
+        </div>
+      </div>
+      <nav class="flex-1 mt-3 px-4 space-y-2">
+        <a
+          class="sidebar-item-active flex items-center gap-3 p-3 rounded-xl"
+          href="index.html"
+        >
+          <span class="iconify" data-icon="mdi:view-dashboard-outline"></span>
+          系统总览
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-800/70 transition-all"
+          href="data-management.html"
+        >
+          <span class="iconify" data-icon="mdi:database-cog-outline"></span>
+          基础数据管理
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-800/70 transition-all"
+          href="algorithm-config.html"
+        >
+          <span class="iconify" data-icon="mdi:brain"></span>
+          策略算法配置
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-800/70 transition-all"
+          href="analysis.html"
+        >
+          <span class="iconify" data-icon="mdi:chart-box-outline"></span>
+          仿真结果分析
+        </a>
+      </nav>
+      <div class="p-5 border-t border-slate-700/50 text-xs text-slate-500 space-y-1">
+        <div id="sidebarDataSource">基础数据源: --</div>
+        <div id="sidebarVisualSource">仿真数据源: --</div>
+        <div id="sidebarDateRange">数据区间: --</div>
+      </div>
+    </aside>
+
+    <main class="flex-1 min-w-0">
+      <header class="glass-panel sticky top-0 z-40 border-x-0 border-t-0 rounded-none">
+        <div class="px-8 py-5">
+          <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="max-w-3xl">
+              <div class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-400">
+                Overview Console
+              </div>
+              <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-50">
+                虚拟电厂基础数据、策略配置与仿真结果联动总览
+              </h1>
+              <!-- <p class="mt-3 text-sm leading-6 text-slate-400">
+                总览页直接复用基础数据管理、策略算法配置、仿真结果分析三页的真实数据口径，
+                统一展示市场画像、算法能力和运行表现。
+              </p> -->
+            </div>
+            <div id="sessionPanel"></div>
+            <!-- <div class="flex flex-wrap items-center gap-3">
+              <span class="status-chip text-emerald-400 bg-emerald-500/10">
+                数据接入在线
+              </span>
+              <span class="status-chip text-sky-400 bg-sky-500/10" id="headerGeneratedAt">
+                更新时间 --
+              </span>
+            </div> -->
+          </div>
+
+          <div class="mt-5 grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-6 xl:col-span-2">
+              <div class="text-xs text-slate-500 mb-2">市场年份</div>
+              <div class="select-wrap">
+                <select id="yearSelector" class="control-select"></select>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 xl:col-span-2">
+              <div class="text-xs text-slate-500 mb-2">市场日期</div>
+              <div class="select-wrap">
+                <select id="dateSelector" class="control-select"></select>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 xl:col-span-3">
+              <div class="text-xs text-slate-500 mb-2">策略算法</div>
+              <div class="select-wrap">
+                <select id="algorithmSelector" class="control-select"></select>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 xl:col-span-2">
+              <div class="text-xs text-slate-500 mb-2">分析对象</div>
+              <div class="select-wrap">
+                <select id="analysisVppSelector" class="control-select"></select>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 xl:col-span-1">
+              <div class="text-xs text-slate-500 mb-2">区间</div>
+              <div class="select-wrap">
+                <select id="analysisHorizonSelector" class="control-select">
+                  <option value="1">1天</option>
+                  <option value="3">3天</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 xl:col-span-2">
+              <div class="text-xs text-slate-500 mb-2">仿真日期</div>
+              <div class="select-wrap">
+                <select id="analysisDateSelector" class="control-select"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-6 xl:p-8 space-y-6">
+        <section class="grid grid-cols-12 gap-4">
+          <article class="col-span-12 md:col-span-6 xl:col-span-3 metric-card p-5">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-sm text-slate-400">年度平均电价</div>
+                <div class="mt-3 text-3xl font-bold text-slate-50">
+                  <span id="metricAvgPrice">--</span>
+                  <span class="text-base font-medium text-slate-500">€/MWh</span>
+                </div>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+                <span class="iconify text-2xl" data-icon="mdi:cash-multiple"></span>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-400" id="metricAvgPriceTrend">--</div>
+          </article>
+
+          <article class="col-span-12 md:col-span-6 xl:col-span-3 metric-card p-5">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-sm text-slate-400">新能源占比</div>
+                <div class="mt-3 text-3xl font-bold text-slate-50">
+                  <span id="metricRenewableShare">--</span>
+                  <span class="text-base font-medium text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <span class="iconify text-2xl" data-icon="mdi:leaf"></span>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-400" id="metricRenewableText">--</div>
+          </article>
+
+          <article class="col-span-12 md:col-span-6 xl:col-span-3 metric-card p-5">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-sm text-slate-400">年度收益估算</div>
+                <div class="mt-3 text-3xl font-bold text-slate-50">
+                  <span id="metricRevenue">--</span>
+                  <span class="text-base font-medium text-slate-500">万€</span>
+                </div>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center">
+                <span class="iconify text-2xl" data-icon="mdi:finance"></span>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-400" id="metricRevenueTrend">--</div>
+          </article>
+
+          <article class="col-span-12 md:col-span-6 xl:col-span-3 metric-card p-5">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-sm text-slate-400">仿真区间总收益</div>
+                <div class="mt-3 text-3xl font-bold text-slate-50" id="metricSimulationRevenue">
+                  --
+                </div>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <span class="iconify text-2xl" data-icon="mdi:chart-areaspline"></span>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-400" id="metricSimulationNote">--</div>
+          </article>
+        </section>
+
+        <section class="section-shell">
+          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-50">基础数据接入总览</h2>
+              <p class="mt-1 text-sm text-slate-400">
+                对应“基础数据管理”页面，汇总年度市场画像、日内出力电价与 VPP 资源接入状态。
+              </p>
+            </div>
+            <div class="text-sm text-slate-400" id="marketSummaryLabel">--</div>
+          </div>
+          <div class="p-6 grid grid-cols-12 gap-4">
+            <article class="col-span-12 xl:col-span-7 chart-card p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-50">日内出力与电价</h3>
+                  <p class="mt-1 text-sm text-slate-400">
+                    选定日期的 15 分钟市场电价、光伏、风电与火电出力曲线。
+                  </p>
+                </div>
+                <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="marketDateLabel">--</div>
+              </div>
+              <div class="chart-host-lg mt-4" id="marketDailyChart"></div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-5 chart-card p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-50">年度市场结构</h3>
+                  <p class="mt-1 text-sm text-slate-400">
+                    年度发电结构、月度均价与新能源均值共同展示。
+                  </p>
+                </div>
+                <div class="text-xs uppercase tracking-[0.16em] text-slate-500">YEAR</div>
+              </div>
+              <div class="chart-host-lg mt-4" id="marketStructureChart"></div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">VPP 资源接入</h3>
+              <div class="mt-4 space-y-3" id="vppAccessList"></div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">数据源状态</h3>
+              <div class="mt-4">
+                <div class="info-row">
+                  <div class="info-label">市场数据生成时间</div>
+                  <div class="info-value" id="marketGeneratedAt">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">市场数据源</div>
+                  <div class="info-value" id="marketSource">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">年度样本覆盖</div>
+                  <div class="info-value" id="marketCoverage">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">日粒度切片日期</div>
+                  <div class="info-value" id="marketDateCount">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">基础数据快照</h3>
+              <div class="overflow-x-auto mt-4">
+                <table class="w-full mini-table">
+                  <thead>
+                    <tr>
+                      <th>VPP</th>
+                      <th>资源</th>
+                      <th>年发电量</th>
+                      <th>收益</th>
+                    </tr>
+                  </thead>
+                  <tbody id="marketBriefBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-shell">
+          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-50">策略配置快照</h2>
+              <p class="mt-1 text-sm text-slate-400">
+                对应“策略算法配置”页面，汇总当前算法的目标、动作定义、训练预算和关键参数。
+              </p>
+            </div>
+            <div class="text-sm text-slate-400" id="algorithmSummaryLabel">--</div>
+          </div>
+          <div class="p-6 grid grid-cols-12 gap-4">
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.16em] text-sky-400">Algorithm</div>
+                  <h3 class="mt-2 text-2xl font-bold text-slate-50" id="algorithmName">--</h3>
+                  <p class="mt-3 text-sm leading-6 text-slate-400" id="algorithmCoreFunction">--</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+                  <span class="iconify text-2xl" data-icon="mdi:brain"></span>
+                </div>
+              </div>
+              <div class="mt-5 space-y-3">
+                <div class="rounded-2xl bg-slate-950/55 border border-slate-800 px-4 py-3">
+                  <div class="text-xs text-slate-500">投标目标</div>
+                  <div class="mt-2 text-sm font-semibold text-slate-100" id="algorithmObjective">--</div>
+                </div>
+                <div class="rounded-2xl bg-slate-950/55 border border-slate-800 px-4 py-3">
+                  <div class="text-xs text-slate-500">动作定义</div>
+                  <div class="mt-2 text-sm font-semibold text-slate-100" id="algorithmAction">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">训练与优化参数</h3>
+              <div class="mt-4">
+                <div class="info-row">
+                  <div class="info-label">训练预算</div>
+                  <div class="info-value" id="algorithmBudget">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">学习率</div>
+                  <div class="info-value" id="algorithmLearningRate">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">折扣因子 gamma</div>
+                  <div class="info-value" id="algorithmGamma">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">GAE lambda</div>
+                  <div class="info-value" id="algorithmLambda">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">裁剪系数 eps_clip</div>
+                  <div class="info-value" id="algorithmClip">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">更新轮次 K_epoch</div>
+                  <div class="info-value" id="algorithmKEpoch">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">模型结构快照</h3>
+              <div class="mt-4">
+                <div class="info-row">
+                  <div class="info-label">算法类别</div>
+                  <div class="info-value" id="algorithmCategory">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">网络类型</div>
+                  <div class="info-value" id="algorithmNetwork">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">输入维度</div>
+                  <div class="info-value" id="algorithmInputSize">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">隐藏层维度</div>
+                  <div class="info-value" id="algorithmHiddenSize">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">输出维度</div>
+                  <div class="info-value" id="algorithmOutputSize">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">关键参数数量</div>
+                  <div class="info-value" id="algorithmParamCount">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-7 chart-card p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-50">训练曲线快照</h3>
+                  <p class="mt-1 text-sm text-slate-400">
+                    复用仿真分析页的奖励、MAE、MBE 收敛结果，用于快速比较策略收敛表现。
+                  </p>
+                </div>
+                <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Training</div>
+              </div>
+              <div class="chart-host-md mt-4" id="trainingSummaryChart"></div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-5 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">策略说明摘要</h3>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-300">
+                <div class="timeline-item" id="algorithmTimeline1">--</div>
+                <div class="timeline-item" id="algorithmTimeline2">--</div>
+                <div class="timeline-item" id="algorithmTimeline3">--</div>
+                <div class="timeline-item" id="algorithmTimeline4">--</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-shell">
+          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-50">仿真结果快照</h2>
+              <p class="mt-1 text-sm text-slate-400">
+                对应“仿真结果分析”页面，按 VPP 和日期区间展示收益、偏差、SOC 与主运行曲线。
+              </p>
+            </div>
+            <div class="text-sm text-slate-400" id="analysisSummaryLabel">--</div>
+          </div>
+          <div class="p-6 grid grid-cols-12 gap-4">
+            <article class="col-span-12 xl:col-span-8 chart-card p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-50" id="analysisChartTitle">--</h3>
+                  <p class="mt-1 text-sm text-slate-400" id="analysisChartMeta">--</p>
+                </div>
+                <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="analysisRangeLabel">--</div>
+              </div>
+              <div class="chart-host-lg mt-4" id="analysisOverviewChart"></div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">区间 KPI</h3>
+              <div class="mt-4">
+                <div class="info-row">
+                  <div class="info-label">总收益</div>
+                  <div class="info-value" id="analysisRevenue">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">平均偏差</div>
+                  <div class="info-value" id="analysisDeviation">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">最大储能功率</div>
+                  <div class="info-value" id="analysisPower">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">SOC 区间</div>
+                  <div class="info-value" id="analysisSocRange">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">数据覆盖率</div>
+                  <div class="info-value" id="analysisCoverage">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">仿真数据文件</div>
+                  <div class="info-value" id="analysisFiles">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">仿真数据源状态</h3>
+              <div class="mt-4">
+                <div class="info-row">
+                  <div class="info-label">生成时间</div>
+                  <div class="info-value" id="visualGeneratedAt">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">数据来源</div>
+                  <div class="info-value" id="visualSource">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">分析 VPP</div>
+                  <div class="info-value" id="visualSelectedVpp">--</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">取数列</div>
+                  <div class="info-value" id="visualColumns">--</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">运行说明</h3>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-300">
+                <div class="timeline-item" id="analysisTimeline1">--</div>
+                <div class="timeline-item" id="analysisTimeline2">--</div>
+                <div class="timeline-item" id="analysisTimeline3">--</div>
+                <div class="timeline-item" id="analysisTimeline4">--</div>
+              </div>
+            </article>
+
+            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+              <h3 class="text-base font-semibold text-slate-50">分析对象清单</h3>
+              <div class="overflow-x-auto mt-4">
+                <table class="w-full mini-table">
+                  <thead>
+                    <tr>
+                      <th>对象</th>
+                      <th>记录数</th>
+                      <th>天数</th>
+                      <th>字段</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analysisDatasetBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      (async () => {
+        const [loadedMarketData, loadedVisualData] = await Promise.all([
+          window.SystemAccess.loadDataAsset({
+            jsonPath: "assets/data.json",
+            scriptPath: "assets/data.js",
+            globalKey: "VPP_MARKET_DATA",
+          }),
+          window.SystemAccess.loadDataAsset({
+            jsonPath: "assets/visual-data.json",
+            scriptPath: "assets/visual-data.js",
+            globalKey: "VPP_VISUAL_DATA",
+          }),
+        ]);
+        window.MarketUI = window.createMarketUI(loadedMarketData);
+
+        const storageKeys = {
+          algorithm: "overviewSelectedAlgorithm",
+          analysisVpp: "analysisSelectedVpp",
+          analysisDate: "analysisSelectedDate",
+          analysisHorizon: "analysisSelectedHorizon",
+        };
+
+        const marketData = MarketUI.data || {};
+        const marketYears = MarketUI.years();
+        const marketDates = MarketUI.dates();
+        const vpps = marketData.vpps || [];
+        const algorithmConfig = marketData.algorithmConfig || {};
+        const algorithms = algorithmConfig.algorithms || [];
+        const visualData = loadedVisualData || { datasets: {} };
+        const visualDatasets = visualData.datasets || {};
+        const analysisAllVpps = "ALL";
+        const trainingEpochs = Array.from({ length: 51 }, (_, index) => index * 10);
+
+        const trainingCurveSource = {
+          reward: {
+            vpp1: [-155.87, 149.65, 172.49, 197.1, 200.69, 203.01, 202.84, 202.35, 202.55, 203, 204.31, 205.56, 205.41, 204.64, 203.81, 203.44, 203.78, 204.06, 205.12, 205.58, 205.49, 205.81, 205.64, 205.46, 204.29, 204.82, 206.21, 205.86, 205.39, 205.21, 205.55, 205.19, 204.67, 205.63, 206.02, 205.49, 204.97, 204.45, 203.91, 203.51, 203.17, 203.31, 203.76, 203.92, 203.39, 203.51, 203.24, 203.63, 204.02, 204.42, 204.81],
+            vpp2: [2.72, 55.69, 92.19, 132.98, 139.35, 141.98, 141.29, 142.51, 146.79, 149.43, 150.07, 150.46, 150.35, 150.87, 150.88, 149.67, 151.72, 156.89, 158.83, 150.71, 149.32, 155.76, 157.33, 156.13, 154.29, 155.76, 156.11, 155.8, 155.77, 156.4, 156.5, 157.14, 153.96, 150.85, 155.25, 156.31, 155.18, 157.21, 158.38, 158.26, 162.86, 168.26, 165.93, 162.75, 160.55, 157.99, 158.44, 159.29, 159.4, 162.06, 161.7],
+            vpp3: [-101.32, 93.29, 108.31, 124.72, 126.14, 125.94, 127.49, 130.12, 131.62, 134.12, 135.22, 135.71, 137.92, 139.19, 138.97, 139.18, 139.61, 139.53, 140.32, 141.61, 140.66, 139.99, 139.99, 139.54, 139.86, 141.58, 142.65, 142.46, 141.18, 140.05, 139.56, 140.41, 141.17, 141.1, 141.43, 142.41, 142.64, 142.36, 142.18, 142.5, 142.8, 142.62, 142.9, 142.97, 142.45, 142.48, 142.72, 142, 141.55, 141.49, 141.51],
+          },
+          mae: {
+            vpp1: [33.74, 6.53, 4.84, 3.22, 3.42, 3.64, 3.76, 3.92, 4.02, 4.04, 4.05, 4.07, 4.1, 4.18, 4.21, 4.09, 4.1, 4.25, 4.32, 4.26, 4.24, 4.28, 4.32, 4.28, 4.3, 4.36, 4.37, 4.38, 4.44, 4.59, 4.5, 4.34, 4.44, 4.47, 4.35, 4.41, 4.43, 4.33, 4.38, 4.39, 4.43, 4.53, 4.49, 4.53, 4.55, 4.53, 4.51, 4.43, 4.43, 4.42, 4.48],
+            vpp2: [27.59, 18.68, 11.3, 3.39, 2.58, 2.25, 2.43, 2.48, 2.11, 2.12, 2.47, 2.75, 2.93, 2.99, 2.9, 3.03, 3.08, 3.28, 3.41, 3.92, 3.82, 3.18, 3.26, 2.81, 2.66, 2.96, 3.01, 2.92, 3.37, 3.28, 2.76, 2.94, 3.19, 2.99, 3.29, 3.25, 2.77, 2.99, 3.15, 3.43, 4.73, 4.33, 2.68, 2.43, 2.37, 2.58, 2.98, 3.04, 2.95, 3.25, 3.42],
+            vpp3: [20.2, 4.84, 3.77, 2.69, 2.8, 2.86, 2.75, 2.84, 2.98, 2.85, 2.71, 2.67, 2.54, 2.48, 2.54, 2.54, 2.55, 2.65, 2.62, 2.57, 2.63, 2.55, 2.52, 2.58, 2.56, 2.51, 2.56, 2.65, 2.63, 2.71, 2.75, 2.68, 2.67, 2.55, 2.45, 2.48, 2.57, 2.61, 2.75, 2.84, 2.76, 2.73, 2.69, 2.73, 2.73, 2.68, 2.63, 2.59, 2.56, 2.56, 2.65],
+          },
+          mbe: {
+            vpp1: [33.39, 4.52, 2.56, 0.52, 0.52, 0.61, 0.75, 0.91, 0.93, 0.75, 0.68, 0.77, 0.8, 0.86, 0.95, 1.05, 0.99, 0.92, 0.98, 1.03, 0.97, 0.97, 1.04, 1.12, 1.27, 1.32, 1.28, 1.24, 1.35, 1.5, 1.4, 1.29, 1.35, 1.37, 1.31, 1.28, 1.32, 1.33, 1.32, 1.34, 1.27, 1.29, 1.3, 1.39, 1.44, 1.39, 1.48, 1.35, 1.15, 1.2, 1.31],
+            vpp2: [27.59, 18.47, 11.06, 2.99, 2.01, 1.63, 1.74, 1.44, 0.71, 0.55, 0.7, 0.64, 0.65, 0.68, 0.67, 0.93, 0.89, 0.9, 1.08, 1.85, 1.74, 1.03, 0.98, 0.61, 0.48, 0.54, 0.75, 0.74, 1.06, 0.98, 0.47, 0.5, 0.85, 0.88, 1.07, 0.97, 0.5, 0.59, 0.68, 0.98, 2.28, 2.16, 0.78, 0.54, 0.48, 0.39, 0.49, 0.56, 0.74, 1.07, 1.22],
+            vpp3: [19.68, 3.75, 2.5, 1.18, 1.24, 1.32, 1.17, 1.18, 1.23, 0.96, 0.85, 0.83, 0.6, 0.48, 0.56, 0.59, 0.57, 0.75, 0.68, 0.54, 0.62, 0.61, 0.66, 0.72, 0.61, 0.56, 0.52, 0.54, 0.56, 0.69, 0.78, 0.68, 0.65, 0.52, 0.42, 0.43, 0.46, 0.51, 0.68, 0.72, 0.65, 0.58, 0.48, 0.45, 0.51, 0.52, 0.46, 0.48, 0.46, 0.36, 0.46],
+          },
+        };
+
+        function averageTrainingSeries(seriesGroup) {
+          const entries = Object.values(seriesGroup || {});
+          if (!entries.length) return [];
+          return entries[0].map((_, index) => {
+            const values = entries
+              .map((series) => series[index])
+              .filter((value) => typeof value === "number" && Number.isFinite(value));
+            if (!values.length) return null;
+            return Number(
+              (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)
+            );
+          });
+        }
+
+        const trainingSummarySeries = {
+          reward: averageTrainingSeries(trainingCurveSource.reward),
+          mae: averageTrainingSeries(trainingCurveSource.mae),
+          mbe: averageTrainingSeries(trainingCurveSource.mbe),
+        };
+
+        const charts = {
+          marketDaily: echarts.init(document.getElementById("marketDailyChart"), "dark"),
+          marketStructure: echarts.init(document.getElementById("marketStructureChart"), "dark"),
+          trainingSummary: echarts.init(document.getElementById("trainingSummaryChart"), "dark"),
+          analysisOverview: echarts.init(document.getElementById("analysisOverviewChart"), "dark"),
+        };
+
+        const elements = {
+          yearSelector: document.getElementById("yearSelector"),
+          dateSelector: document.getElementById("dateSelector"),
+          algorithmSelector: document.getElementById("algorithmSelector"),
+          analysisVppSelector: document.getElementById("analysisVppSelector"),
+          analysisDateSelector: document.getElementById("analysisDateSelector"),
+          analysisHorizonSelector: document.getElementById("analysisHorizonSelector"),
+          metricAvgPrice: document.getElementById("metricAvgPrice"),
+          metricAvgPriceTrend: document.getElementById("metricAvgPriceTrend"),
+          metricRenewableShare: document.getElementById("metricRenewableShare"),
+          metricRenewableText: document.getElementById("metricRenewableText"),
+          metricRevenue: document.getElementById("metricRevenue"),
+          metricRevenueTrend: document.getElementById("metricRevenueTrend"),
+          metricSimulationRevenue: document.getElementById("metricSimulationRevenue"),
+          metricSimulationNote: document.getElementById("metricSimulationNote"),
+          marketSummaryLabel: document.getElementById("marketSummaryLabel"),
+          marketDateLabel: document.getElementById("marketDateLabel"),
+          vppAccessList: document.getElementById("vppAccessList"),
+          marketGeneratedAt: document.getElementById("marketGeneratedAt"),
+          marketSource: document.getElementById("marketSource"),
+          marketCoverage: document.getElementById("marketCoverage"),
+          marketDateCount: document.getElementById("marketDateCount"),
+          marketBriefBody: document.getElementById("marketBriefBody"),
+          algorithmSummaryLabel: document.getElementById("algorithmSummaryLabel"),
+          algorithmName: document.getElementById("algorithmName"),
+          algorithmCoreFunction: document.getElementById("algorithmCoreFunction"),
+          algorithmObjective: document.getElementById("algorithmObjective"),
+          algorithmAction: document.getElementById("algorithmAction"),
+          algorithmBudget: document.getElementById("algorithmBudget"),
+          algorithmLearningRate: document.getElementById("algorithmLearningRate"),
+          algorithmGamma: document.getElementById("algorithmGamma"),
+          algorithmLambda: document.getElementById("algorithmLambda"),
+          algorithmClip: document.getElementById("algorithmClip"),
+          algorithmKEpoch: document.getElementById("algorithmKEpoch"),
+          algorithmCategory: document.getElementById("algorithmCategory"),
+          algorithmNetwork: document.getElementById("algorithmNetwork"),
+          algorithmInputSize: document.getElementById("algorithmInputSize"),
+          algorithmHiddenSize: document.getElementById("algorithmHiddenSize"),
+          algorithmOutputSize: document.getElementById("algorithmOutputSize"),
+          algorithmParamCount: document.getElementById("algorithmParamCount"),
+          algorithmTimeline1: document.getElementById("algorithmTimeline1"),
+          algorithmTimeline2: document.getElementById("algorithmTimeline2"),
+          algorithmTimeline3: document.getElementById("algorithmTimeline3"),
+          algorithmTimeline4: document.getElementById("algorithmTimeline4"),
+          analysisSummaryLabel: document.getElementById("analysisSummaryLabel"),
+          analysisChartTitle: document.getElementById("analysisChartTitle"),
+          analysisChartMeta: document.getElementById("analysisChartMeta"),
+          analysisRangeLabel: document.getElementById("analysisRangeLabel"),
+          analysisRevenue: document.getElementById("analysisRevenue"),
+          analysisDeviation: document.getElementById("analysisDeviation"),
+          analysisPower: document.getElementById("analysisPower"),
+          analysisSocRange: document.getElementById("analysisSocRange"),
+          analysisCoverage: document.getElementById("analysisCoverage"),
+          analysisFiles: document.getElementById("analysisFiles"),
+          visualGeneratedAt: document.getElementById("visualGeneratedAt"),
+          visualSource: document.getElementById("visualSource"),
+          visualSelectedVpp: document.getElementById("visualSelectedVpp"),
+          visualColumns: document.getElementById("visualColumns"),
+          analysisTimeline1: document.getElementById("analysisTimeline1"),
+          analysisTimeline2: document.getElementById("analysisTimeline2"),
+          analysisTimeline3: document.getElementById("analysisTimeline3"),
+          analysisTimeline4: document.getElementById("analysisTimeline4"),
+          analysisDatasetBody: document.getElementById("analysisDatasetBody"),
+          sidebarDataSource: document.getElementById("sidebarDataSource"),
+          sidebarVisualSource: document.getElementById("sidebarVisualSource"),
+          sidebarDateRange: document.getElementById("sidebarDateRange"),
+          headerGeneratedAt: document.getElementById("headerGeneratedAt"),
+        };
+
+        const datasetIds = Object.keys(visualDatasets);
+
+        function getDefaultAlgorithmId() {
+          return (
+            (algorithms.find((item) => item.id === "deepBid") || algorithms[0] || {}).id || ""
+          );
+        }
+
+        function normalizeYear(year) {
+          return marketYears.includes(Number(year))
+            ? Number(year)
+            : marketYears[marketYears.length - 1];
+        }
+
+        function normalizeDate(date, year) {
+          const dates = getMarketDatesByYear(year);
+          if (!dates.length) return "";
+          return dates.includes(date) ? date : dates[dates.length - 1];
+        }
+
+        function normalizeAlgorithmId(algorithmId) {
+          return algorithms.some((item) => item.id === algorithmId)
+            ? algorithmId
+            : getDefaultAlgorithmId();
+        }
+
+        function normalizeAnalysisVpp(selectedVpp) {
+          if (selectedVpp === analysisAllVpps) return analysisAllVpps;
+          return datasetIds.includes(selectedVpp) ? selectedVpp : analysisAllVpps;
+        }
+
+        function normalizeAnalysisHorizon(horizon) {
+          return Number(horizon) === 3 ? 3 : 1;
+        }
+
+        const state = {
+          year: normalizeYear(MarketUI.selectedYear()),
+          date: "",
+          algorithmId: normalizeAlgorithmId(localStorage.getItem(storageKeys.algorithm)),
+          analysisVpp: normalizeAnalysisVpp(localStorage.getItem(storageKeys.analysisVpp)),
+          analysisHorizon: normalizeAnalysisHorizon(
+            localStorage.getItem(storageKeys.analysisHorizon)
+          ),
+          analysisDate: localStorage.getItem(storageKeys.analysisDate) || "",
+        };
+
+        state.date = normalizeDate(MarketUI.selectedDate(), state.year);
+
+        function getMarketDatesByYear(year) {
+          return marketDates.filter((date) => Number(date.slice(0, 4)) === Number(year));
+        }
+
+        function syncMarketDateSelector() {
+          const dates = getMarketDatesByYear(state.year);
+          if (!dates.length) {
+            elements.dateSelector.innerHTML = "";
+            return;
+          }
+          if (!dates.includes(state.date)) {
+            state.date = dates[dates.length - 1];
+          }
+          elements.dateSelector.innerHTML = dates
+            .map((date) => `<option value="${date}">${date}</option>`)
+            .join("");
+          elements.dateSelector.value = state.date;
+          localStorage.setItem("marketSelectedDate", state.date);
+          localStorage.setItem("marketSelectedYear", String(state.year));
+        }
+
+        function setText(node, value) {
+          if (node) node.textContent = value;
+        }
+
+        function number(value, digits = 2) {
+          return MarketUI.number(value, digits);
+        }
+
+        function formatSimple(value, digits = 2) {
+          if (value === null || value === undefined || Number.isNaN(value)) return "--";
+          return Number(value).toLocaleString("zh-CN", {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+          });
+        }
+
+        function formatCount(value) {
+          return Number(value || 0).toLocaleString("zh-CN");
+        }
+
+        function formatRevenueValue(value) {
+          if (value === null || value === undefined || Number.isNaN(value)) return "--";
+          const abs = Math.abs(value);
+          if (abs >= 10000) {
+            return `${formatSimple(value / 10000, 2)} 万`;
+          }
+          return formatSimple(value, 0);
+        }
+
+        function formatPercent(value, digits = 1) {
+          if (value === null || value === undefined || Number.isNaN(value)) return "--";
+          return `${formatSimple(value, digits)}%`;
+        }
+
+        function getAlgorithmParam(algorithm, patterns, fallback = "--") {
+          const list = Array.isArray(patterns) ? patterns : [patterns];
+          const parameters = algorithm?.parameters || [];
+          const found = parameters.find((item) =>
+            list.some((pattern) =>
+              typeof pattern === "string"
+                ? String(item.label || "").includes(pattern)
+                : pattern.test(String(item.label || ""))
+            )
+          );
+          return found ? found.value || found.description || fallback : fallback;
+        }
+
+        function getSelectedAlgorithm() {
+          return (
+            algorithms.find((item) => item.id === state.algorithmId) || algorithms[0] || {}
+          );
+        }
+
+        function getAnalysisAvailableDates(selectedVpp, horizon) {
+          const ids =
+            selectedVpp === analysisAllVpps
+              ? datasetIds
+              : [selectedVpp];
+          let shared = null;
+          ids.forEach((id) => {
+            const dates = (visualDatasets[id] && visualDatasets[id].dates) || [];
+            if (shared === null) {
+              shared = [...dates];
+            } else {
+              const dateSet = new Set(dates);
+              shared = shared.filter((date) => dateSet.has(date));
+            }
+          });
+          if (!shared) return [];
+          const lastStartIndex = Math.max(0, shared.length - horizon);
+          return shared.slice(0, lastStartIndex + 1);
+        }
+
+        function buildAnalysisSlots(rangeDates) {
+          const slots = [];
+          rangeDates.forEach((date) => {
+            for (let hour = 0; hour < 24; hour += 1) {
+              for (let minute = 0; minute < 60; minute += 15) {
+                slots.push({
+                  date,
+                  time: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+                });
+              }
+            }
+          });
+          return slots;
+        }
+
+        function isFiniteNumber(value) {
+          return typeof value === "number" && Number.isFinite(value);
+        }
+
+        function sumDefined(values) {
+          const valid = values.filter(isFiniteNumber);
+          if (!valid.length) return null;
+          return valid.reduce((sum, value) => sum + value, 0);
+        }
+
+        function averageDefined(values) {
+          const valid = values.filter(isFiniteNumber);
+          if (!valid.length) return null;
+          return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+        }
+
+        function computeDatasetMaxSoc(dataset) {
+          let max = 0;
+          (dataset.dates || []).forEach((date) => {
+            (dataset.seriesByDate?.[date] || []).forEach((row) => {
+              if (isFiniteNumber(row.soc_eg)) max = Math.max(max, row.soc_eg);
+            });
+          });
+          return max;
+        }
+
+        const visualMeta = Object.fromEntries(
+          datasetIds.map((id) => {
+            const dataset = visualDatasets[id];
+            return [
+              id,
+              {
+                maxSoc: computeDatasetMaxSoc(dataset),
+                title:
+                  id === "VPP1"
+                    ? "VPP1 风储"
+                    : id === "VPP2"
+                      ? "VPP2 光储"
+                      : "VPP3 光火储",
+                source:
+                  id === "VPP1"
+                    ? "风电 + 储能"
+                    : id === "VPP2"
+                      ? "光伏 + 储能"
+                      : "光伏 + 火电 + 储能",
+              },
+            ];
+          })
+        );
+
+        function buildAnalysisModel() {
+          const availableDates = getAnalysisAvailableDates(state.analysisVpp, state.analysisHorizon);
+          if (!availableDates.length) {
+            return {
+              availableDates: [],
+              rangeDates: [],
+              slots: [],
+              datasetIds: [],
+              axisLabels: [],
+              genSeries: [],
+              bidSeries: [],
+              dispatchSeries: [],
+              priceSeries: [],
+              chargePowerSeries: [],
+              dischargePowerSeries: [],
+              cumulativeRevenueSeries: [],
+              intervalRevenueSeries: [],
+              totalRevenue: null,
+              avgDeviation: null,
+              maxBatteryPower: null,
+              socMinPct: null,
+              socMaxPct: null,
+              coveragePct: 0,
+              filledPoints: 0,
+              files: [],
+              columns: [],
+            };
+          }
+
+          if (!availableDates.includes(state.analysisDate)) {
+            state.analysisDate = availableDates[Math.max(availableDates.length - 1, 0)];
+          }
+
+          const startIndex = availableDates.indexOf(state.analysisDate);
+          const rangeDates = availableDates.slice(
+            startIndex,
+            startIndex + state.analysisHorizon
+          );
+          const datasetIds =
+            state.analysisVpp === analysisAllVpps
+              ? Object.keys(visualDatasets)
+              : [state.analysisVpp];
+          const slots = buildAnalysisSlots(rangeDates);
+          const rowCaches = {};
+          const columns = Array.from(
+            new Set(datasetIds.flatMap((id) => visualDatasets[id].columns || []))
+          );
+
+          function getRow(datasetId, date, time) {
+            rowCaches[datasetId] = rowCaches[datasetId] || {};
+            rowCaches[datasetId][date] = rowCaches[datasetId][date] || Object.fromEntries(
+              (visualDatasets[datasetId].seriesByDate?.[date] || []).map((row) => [row.time, row])
+            );
+            return rowCaches[datasetId][date][time] || null;
+          }
+
+          const totalSocCapacity = datasetIds.reduce(
+            (sum, id) => sum + (visualMeta[id]?.maxSoc || 0),
+            0
+          );
+
+          let totalRevenue = 0;
+          let revenueCount = 0;
+          let deviationSum = 0;
+          let deviationCount = 0;
+          let maxBatteryPower = 0;
+          let socMinPct = null;
+          let socMaxPct = null;
+          let filledPoints = 0;
+          let cumulativeRevenue = 0;
+
+          const genSeries = [];
+          const bidSeries = [];
+          const dispatchSeries = [];
+          const priceSeries = [];
+          const chargePowerSeries = [];
+          const dischargePowerSeries = [];
+          const intervalRevenueSeries = [];
+          const cumulativeRevenueSeries = [];
+
+          slots.forEach((slot, index) => {
+            const slotRows = datasetIds.map((datasetId) => {
+              const row = getRow(datasetId, slot.date, slot.time);
+              const previousSlot = index > 0 ? slots[index - 1] : null;
+              const previousRow =
+                previousSlot === null
+                  ? null
+                  : getRow(datasetId, previousSlot.date, previousSlot.time);
+              if (!row) {
+                return {
+                  gen: null,
+                  bid: null,
+                  soc: null,
+                  dispatch: null,
+                  batteryPower: null,
+                  price: null,
+                };
+              }
+              const socDelta =
+                previousRow && isFiniteNumber(previousRow.soc_eg)
+                  ? -(row.soc_eg - previousRow.soc_eg)
+                  : 0;
+              return {
+                gen: isFiniteNumber(row.gen_eg) ? row.gen_eg : null,
+                bid: isFiniteNumber(row.bid_eg) ? row.bid_eg : null,
+                soc: isFiniteNumber(row.soc_eg) ? row.soc_eg : null,
+                dispatch:
+                  isFiniteNumber(row.gen_eg) && isFiniteNumber(socDelta)
+                    ? row.gen_eg + socDelta
+                    : null,
+                batteryPower: isFiniteNumber(socDelta) ? socDelta / 0.25 : null,
+                price: isFiniteNumber(row.imb_eg) ? row.imb_eg : null,
+              };
+            });
+
+            const gen = sumDefined(slotRows.map((item) => item.gen));
+            const bid = sumDefined(slotRows.map((item) => item.bid));
+            const soc = sumDefined(slotRows.map((item) => item.soc));
+            const dispatch = sumDefined(slotRows.map((item) => item.dispatch));
+            const batteryPower = sumDefined(slotRows.map((item) => item.batteryPower));
+            const price = averageDefined(slotRows.map((item) => item.price));
+
+            const deviation =
+              isFiniteNumber(bid) && isFiniteNumber(dispatch)
+                ? Math.abs(bid - dispatch)
+                : null;
+            const intervalRevenue =
+              isFiniteNumber(dispatch) && isFiniteNumber(price)
+                ? dispatch * price
+                : null;
+
+            if (
+              isFiniteNumber(gen) ||
+              isFiniteNumber(bid) ||
+              isFiniteNumber(soc) ||
+              isFiniteNumber(price)
+            ) {
+              filledPoints += 1;
+            }
+            if (isFiniteNumber(deviation)) {
+              deviationSum += deviation;
+              deviationCount += 1;
+            }
+            if (isFiniteNumber(intervalRevenue)) {
+              totalRevenue += intervalRevenue;
+              cumulativeRevenue += intervalRevenue;
+              revenueCount += 1;
+            }
+            if (isFiniteNumber(batteryPower)) {
+              maxBatteryPower = Math.max(maxBatteryPower, Math.abs(batteryPower));
+            }
+            if (isFiniteNumber(soc) && totalSocCapacity > 0) {
+              const pct = (soc / totalSocCapacity) * 100;
+              socMinPct = socMinPct === null ? pct : Math.min(socMinPct, pct);
+              socMaxPct = socMaxPct === null ? pct : Math.max(socMaxPct, pct);
+            }
+
+            genSeries.push(gen);
+            bidSeries.push(bid);
+            dispatchSeries.push(dispatch);
+            priceSeries.push(price);
+            chargePowerSeries.push(
+              !isFiniteNumber(batteryPower) ? null : Math.min(batteryPower, 0)
+            );
+            dischargePowerSeries.push(
+              !isFiniteNumber(batteryPower) ? null : Math.max(batteryPower, 0)
+            );
+            intervalRevenueSeries.push(intervalRevenue);
+            cumulativeRevenueSeries.push(
+              revenueCount > 0 ? Number(cumulativeRevenue.toFixed(2)) : null
+            );
+          });
+
+          return {
+            availableDates,
+            rangeDates,
+            slots,
+            datasetIds,
+            axisLabels: slots.map((slot) => slot.time),
+            genSeries,
+            bidSeries,
+            dispatchSeries,
+            priceSeries,
+            chargePowerSeries,
+            dischargePowerSeries,
+            intervalRevenueSeries,
+            cumulativeRevenueSeries,
+            totalRevenue: revenueCount > 0 ? Number(totalRevenue.toFixed(2)) : null,
+            avgDeviation:
+              deviationCount > 0 ? Number((deviationSum / deviationCount).toFixed(2)) : null,
+            maxBatteryPower:
+              maxBatteryPower > 0 ? Number(maxBatteryPower.toFixed(2)) : null,
+            socMinPct,
+            socMaxPct,
+            coveragePct: slots.length ? (filledPoints / slots.length) * 100 : 0,
+            filledPoints,
+            files: datasetIds
+              .map((id) => visualDatasets[id]?.sourceFile || "")
+              .filter(Boolean),
+            columns,
+            revenueCount,
+          };
+        }
+
+        function populateSelectors() {
+          if (marketYears.length) {
+            elements.yearSelector.innerHTML = marketYears
+              .map((year) => `<option value="${year}">${year}年</option>`)
+              .join("");
+            elements.yearSelector.value = String(state.year);
+          } else {
+            elements.yearSelector.innerHTML = '<option value="">暂无市场年份</option>';
+          }
+          elements.yearSelector.addEventListener("change", () => {
+            state.year = normalizeYear(elements.yearSelector.value);
+            syncMarketDateSelector();
+            render();
+          });
+
+          syncMarketDateSelector();
+          elements.dateSelector.addEventListener("change", () => {
+            state.date = elements.dateSelector.value;
+            localStorage.setItem("marketSelectedDate", state.date);
+            state.year = normalizeYear(Number(state.date.slice(0, 4)));
+            localStorage.setItem("marketSelectedYear", String(state.year));
+            elements.yearSelector.value = String(state.year);
+            render();
+          });
+
+          if (algorithms.length) {
+            elements.algorithmSelector.innerHTML = algorithms
+              .map(
+                (algorithm) =>
+                  `<option value="${algorithm.id}">${algorithm.displayName} · ${algorithm.category}</option>`
+              )
+              .join("");
+            elements.algorithmSelector.value = state.algorithmId;
+          } else {
+            elements.algorithmSelector.innerHTML = '<option value="">暂无算法配置</option>';
+          }
+          elements.algorithmSelector.addEventListener("change", () => {
+            state.algorithmId = normalizeAlgorithmId(elements.algorithmSelector.value);
+            localStorage.setItem(storageKeys.algorithm, state.algorithmId);
+            renderAlgorithmSection();
+          });
+
+          elements.analysisVppSelector.innerHTML = [
+            `<option value="${analysisAllVpps}">全部 VPP</option>`,
+            ...datasetIds.map(
+              (id) => `<option value="${id}">${visualMeta[id].title}</option>`
+            ),
+          ].join("");
+          elements.analysisVppSelector.value = state.analysisVpp;
+          elements.analysisVppSelector.addEventListener("change", () => {
+            state.analysisVpp = normalizeAnalysisVpp(elements.analysisVppSelector.value);
+            localStorage.setItem(storageKeys.analysisVpp, state.analysisVpp);
+            syncAnalysisDateSelector();
+            renderSimulationSection();
+          });
+
+          elements.analysisHorizonSelector.value = String(state.analysisHorizon);
+          elements.analysisHorizonSelector.addEventListener("change", () => {
+            state.analysisHorizon = Number(elements.analysisHorizonSelector.value);
+            localStorage.setItem(
+              storageKeys.analysisHorizon,
+              String(state.analysisHorizon)
+            );
+            syncAnalysisDateSelector();
+            renderSimulationSection();
+          });
+
+          syncAnalysisDateSelector();
+
+          elements.analysisDateSelector.addEventListener("change", () => {
+            state.analysisDate = elements.analysisDateSelector.value;
+            localStorage.setItem(storageKeys.analysisDate, state.analysisDate);
+            renderSimulationSection();
+          });
+        }
+
+        function syncAnalysisDateSelector() {
+          const dates = getAnalysisAvailableDates(
+            state.analysisVpp,
+            state.analysisHorizon
+          );
+          if (!dates.length) {
+            state.analysisDate = "";
+            elements.analysisDateSelector.innerHTML = '<option value="">暂无仿真日期</option>';
+            return;
+          }
+          if (!dates.includes(state.analysisDate)) {
+            state.analysisDate = dates[Math.max(dates.length - 1, 0)];
+            localStorage.setItem(storageKeys.analysisDate, state.analysisDate);
+          }
+          elements.analysisDateSelector.innerHTML = dates
+            .map((date) => `<option value="${date}">${date}</option>`)
+            .join("");
+          elements.analysisDateSelector.value = state.analysisDate;
+        }
+
+        function renderMarketSection() {
+          const yearData = MarketUI.yearData(state.year);
+          if (!yearData || !yearData.summary) {
+            setText(elements.metricAvgPrice, "--");
+            setText(elements.metricAvgPriceTrend, "暂无市场数据");
+            setText(elements.metricRenewableShare, "--");
+            setText(elements.metricRenewableText, "暂无市场数据");
+            setText(elements.metricRevenue, "--");
+            setText(elements.metricRevenueTrend, "暂无市场数据");
+            setText(elements.marketSummaryLabel, "暂无市场数据");
+            setText(elements.marketDateLabel, "--");
+            setText(elements.marketGeneratedAt, marketData.generatedAt || "--");
+            setText(elements.marketSource, marketData.source || "--");
+            setText(elements.marketCoverage, "--");
+            setText(elements.marketDateCount, `${marketDates.length} 天`);
+            setText(elements.sidebarDataSource, `基础数据源: ${marketData.source || "--"}`);
+            setText(
+              elements.sidebarDateRange,
+              marketYears.length
+                ? `数据区间: ${marketYears[0]}-${marketYears[marketYears.length - 1]}`
+                : "数据区间: --"
+            );
+            setText(elements.headerGeneratedAt, `更新时间 ${marketData.generatedAt || "--"}`);
+            elements.marketBriefBody.innerHTML = "";
+            elements.vppAccessList.innerHTML = "";
+            charts.marketDaily.clear();
+            charts.marketStructure.clear();
+            return;
+          }
+
+          const previous = MarketUI.previousYearData(state.year);
+          const summary = yearData.summary;
+          const previousSummary = previous ? previous.summary : null;
+          const daySeries = MarketUI.dailySeries(state.date);
+          const monthly = yearData.monthly || [];
+          const rows = MarketUI.sourceRows(summary);
+          const annualRevenueByVpp = MarketUI.annualRevenueByVpp(summary);
+
+          setText(elements.metricAvgPrice, number(summary.avgPrice, 2));
+          setText(
+            elements.metricAvgPriceTrend,
+            previousSummary
+              ? `同比 ${MarketUI.trend(summary.avgPrice, previousSummary.avgPrice, 2)}`
+              : "基准年"
+          );
+          setText(elements.metricRenewableShare, number(summary.renewableShare, 1));
+          setText(
+            elements.metricRenewableText,
+            `平均新能源出力 ${number(summary.avgRenewable, 1)} MW`
+          );
+          setText(elements.metricRevenue, number(summary.revenueWan, 1));
+          setText(
+            elements.metricRevenueTrend,
+            previousSummary
+              ? `同比 ${MarketUI.trend(summary.revenueWan, previousSummary.revenueWan, 1)}`
+              : "基准年"
+          );
+          setText(
+            elements.marketSummaryLabel,
+            `${state.year} 年 · ${formatSimple(summary.count, 0)} 个样本点 · 峰谷价差 ${number(
+              summary.maxPrice - summary.minPrice,
+              2
+            )} €/MWh`
+          );
+          setText(elements.marketDateLabel, state.date);
+          setText(elements.marketGeneratedAt, marketData.generatedAt || "--");
+          setText(elements.marketSource, marketData.source || "--");
+          setText(
+            elements.marketCoverage,
+            `${formatCount(summary.count)} 点 / ${state.year}年`
+          );
+          setText(elements.marketDateCount, `${marketDates.length} 天`);
+          setText(
+            elements.sidebarDataSource,
+            `基础数据源: ${marketData.source || "--"}`
+          );
+          setText(
+            elements.sidebarDateRange,
+            marketYears.length
+              ? `数据区间: ${marketYears[0]}-${marketYears[marketYears.length - 1]}`
+              : "数据区间: --"
+          );
+          setText(
+            elements.headerGeneratedAt,
+            `更新时间 ${marketData.generatedAt || "--"}`
+          );
+
+          elements.marketBriefBody.innerHTML = rows
+            .map((row) => {
+              const revenueItem = annualRevenueByVpp.find((item) => item.id === row.id);
+              return `
+                <tr>
+                  <td>${row.id}</td>
+                  <td>${row.source}</td>
+                  <td>${number(row.annualEnergy, 2)} GWh</td>
+                  <td style="color:${row.color}">${number(revenueItem?.value || 0, 2)} 万€</td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          elements.vppAccessList.innerHTML = vpps
+            .map((vpp, index) => {
+              const row = rows[index] || {};
+              return `
+                <div class="rounded-2xl bg-slate-950/50 border border-slate-800 px-4 py-3">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                      <span class="w-3 h-3 rounded-full" style="background:${vpp.color}"></span>
+                      <div>
+                        <div class="text-sm font-semibold text-slate-100">${vpp.id}</div>
+                        <div class="text-xs text-slate-500">${vpp.name}</div>
+                      </div>
+                    </div>
+                    <div class="text-xs text-slate-500">${row.status || "已接入"}</div>
+                  </div>
+                  <div class="mt-3 grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <div class="text-slate-500">资源</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${row.source || vpp.source}</div>
+                    </div>
+                    <div>
+                      <div class="text-slate-500">平均出力</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${number(row.avgPower || 0, 1)} MW</div>
+                    </div>
+                    <div>
+                      <div class="text-slate-500">收益</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${number(
+                        (annualRevenueByVpp.find((item) => item.id === vpp.id) || {}).value || 0,
+                        1
+                      )} 万€</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            })
+            .join("");
+
+          charts.marketDaily.setOption(
+            {
+              backgroundColor: "transparent",
+              textStyle: { color: "#cbd5e1" },
+              tooltip: { trigger: "axis" },
+              legend: {
+                top: 8,
+                textStyle: { color: "#cbd5e1" },
+                data: ["光伏", "风电", "火电", "电价"],
+              },
+              grid: { top: 56, left: 56, right: 56, bottom: 42 },
+              xAxis: {
+                type: "category",
+                data: daySeries.map((item) => item.time),
+                axisLine: MarketUI.axisLine,
+                axisLabel: { color: MarketUI.chartText, interval: 7 },
+              },
+              yAxis: [
+                {
+                  type: "value",
+                  name: "MW",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: MarketUI.dashedGrid,
+                },
+                {
+                  type: "value",
+                  name: "€/MWh",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: { show: false },
+                },
+              ],
+              series: [
+                {
+                  name: "光伏",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: daySeries.map((item) => item.solar),
+                  lineStyle: { width: 2.6, color: MarketUI.colors.yellow },
+                  itemStyle: { color: MarketUI.colors.yellow },
+                },
+                {
+                  name: "风电",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: daySeries.map((item) => item.wind),
+                  lineStyle: { width: 2.6, color: MarketUI.colors.teal },
+                  itemStyle: { color: MarketUI.colors.teal },
+                },
+                {
+                  name: "火电",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: daySeries.map((item) => item.thermal),
+                  lineStyle: { width: 2.4, color: MarketUI.colors.blue },
+                  itemStyle: { color: MarketUI.colors.blue },
+                },
+                {
+                  name: "电价",
+                  type: "bar",
+                  yAxisIndex: 1,
+                  data: daySeries.map((item) => item.price),
+                  barMaxWidth: 9,
+                  itemStyle: {
+                    color: "rgba(244, 114, 182, 0.72)",
+                    borderRadius: [3, 3, 0, 0],
+                  },
+                },
+              ],
+            },
+            true
+          );
+
+          charts.marketStructure.setOption(
+            {
+              backgroundColor: "transparent",
+              tooltip: { trigger: "axis" },
+              legend: {
+                bottom: 0,
+                textStyle: { color: "#cbd5e1" },
+                data: ["光伏", "风电", "火电模型", "均价"],
+              },
+              grid: { top: 38, left: 54, right: 24, bottom: 64 },
+              xAxis: {
+                type: "category",
+                data: monthly.map((item) => item.month),
+                axisLine: MarketUI.axisLine,
+                axisLabel: { color: MarketUI.chartText },
+              },
+              yAxis: [
+                {
+                  type: "value",
+                  name: "MW",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: MarketUI.dashedGrid,
+                },
+                {
+                  type: "value",
+                  name: "€/MWh",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: { show: false },
+                },
+              ],
+              series: [
+                {
+                  name: "光伏",
+                  type: "bar",
+                  data: monthly.map((item) => item.avgSolar),
+                  itemStyle: { color: MarketUI.colors.yellow },
+                  barMaxWidth: 18,
+                },
+                {
+                  name: "风电",
+                  type: "bar",
+                  data: monthly.map((item) => item.avgWind),
+                  itemStyle: { color: MarketUI.colors.teal },
+                  barMaxWidth: 18,
+                },
+                {
+                  name: "火电模型",
+                  type: "bar",
+                  data: monthly.map(() => summary.avgThermal || 0),
+                  itemStyle: { color: MarketUI.colors.blue },
+                  barMaxWidth: 18,
+                },
+                {
+                  name: "均价",
+                  type: "line",
+                  yAxisIndex: 1,
+                  smooth: true,
+                  showSymbol: false,
+                  data: monthly.map((item) => item.avgPrice),
+                  lineStyle: { width: 2.8, color: MarketUI.colors.pink },
+                  itemStyle: { color: MarketUI.colors.pink },
+                },
+              ],
+            },
+            true
+          );
+        }
+
+        function renderAlgorithmSection() {
+          const algorithm = getSelectedAlgorithm();
+          const algorithmName = algorithm.displayName || "--";
+          const mappedVpp = vpps.find((item) =>
+            item.algorithm && algorithm.displayName
+              ? item.algorithm.includes(algorithm.displayName) ||
+                algorithm.displayName.includes(item.algorithm)
+              : false
+          );
+
+          setText(
+            elements.algorithmSummaryLabel,
+            `${algorithmName} · ${algorithm.category || "--"}`
+          );
+          setText(elements.algorithmName, algorithmName);
+          setText(
+            elements.algorithmCoreFunction,
+            algorithm.coreFunction || "当前算法未提供核心功能描述"
+          );
+          setText(elements.algorithmObjective, algorithm.objective || "--");
+          setText(elements.algorithmAction, algorithm.actionDefinition || "--");
+          setText(
+            elements.algorithmBudget,
+            algorithm.trainingBudget ? `${algorithm.trainingBudget} 回合` : "--"
+          );
+          setText(
+            elements.algorithmLearningRate,
+            getAlgorithmParam(algorithm, "学习率", mappedVpp?.learningRate || "--")
+          );
+          setText(
+            elements.algorithmGamma,
+            getAlgorithmParam(algorithm, ["折扣因子", "折扣因子 γ"], mappedVpp?.gamma || "--")
+          );
+          setText(
+            elements.algorithmLambda,
+            getAlgorithmParam(algorithm, ["GAE参数", "GAE参数 λ"], mappedVpp?.lambda || "--")
+          );
+          setText(
+            elements.algorithmClip,
+            getAlgorithmParam(algorithm, ["裁剪系数", "裁剪系数 ε"], mappedVpp?.epsClip || "--")
+          );
+          setText(
+            elements.algorithmKEpoch,
+            getAlgorithmParam(algorithm, "每次更新epoch数", "--")
+          );
+          setText(elements.algorithmCategory, algorithm.category || "--");
+          setText(
+            elements.algorithmNetwork,
+            getAlgorithmParam(algorithm, ["神经网络", "网络类型"], mappedVpp?.network || "--")
+          );
+          setText(
+            elements.algorithmInputSize,
+            getAlgorithmParam(algorithm, "输入维度", mappedVpp?.inputSize || "--")
+          );
+          setText(
+            elements.algorithmHiddenSize,
+            getAlgorithmParam(algorithm, "隐藏层维度", mappedVpp?.hiddenSize || "--")
+          );
+          setText(
+            elements.algorithmOutputSize,
+            getAlgorithmParam(algorithm, "输出维度", mappedVpp?.outputSize || "--")
+          );
+          setText(
+            elements.algorithmParamCount,
+            `${(algorithm.parameters || []).length} 项`
+          );
+          setText(
+            elements.algorithmTimeline1,
+            `${algorithmName === "--" ? "当前算法" : algorithmName}面向${algorithm.objective || "市场报价收益优化"}，直接与市场数据页面的年度/日内口径对齐。`
+          );
+          setText(
+            elements.algorithmTimeline2,
+            `动作定义为 ${algorithm.actionDefinition || "未配置"}，与仿真页中的投标量、调度量和储能 SOC 联动。`
+          );
+          setText(
+            elements.algorithmTimeline3,
+            `训练预算 ${algorithm.trainingBudget || "--"} 回合，关键参数包含学习率、折扣因子与策略裁剪。`
+          );
+          setText(
+            elements.algorithmTimeline4,
+            `映射到 VPP 参数时，优先读取算法配置页参数；缺失时回退到基础数据中的 VPP 静态字段。`
+          );
+
+          charts.trainingSummary.setOption(
+            {
+              backgroundColor: "transparent",
+              tooltip: { trigger: "axis" },
+              legend: {
+                top: 8,
+                textStyle: { color: "#cbd5e1" },
+                data: ["Reward", "MAE", "MBE"],
+              },
+              grid: { top: 48, left: 54, right: 24, bottom: 44 },
+              xAxis: {
+                type: "category",
+                data: trainingEpochs,
+                axisLine: MarketUI.axisLine,
+                axisLabel: { color: MarketUI.chartText },
+              },
+              yAxis: [
+                {
+                  type: "value",
+                  name: "Reward test",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: MarketUI.dashedGrid,
+                },
+                {
+                  type: "value",
+                  name: "test %",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: { show: false },
+                },
+              ],
+              series: [
+                {
+                  name: "Reward",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: trainingSummarySeries.reward,
+                  lineStyle: { width: 2.8, color: "#38bdf8" },
+                  itemStyle: { color: "#38bdf8" },
+                },
+                {
+                  name: "MAE",
+                  type: "line",
+                  yAxisIndex: 1,
+                  smooth: true,
+                  showSymbol: false,
+                  data: trainingSummarySeries.mae,
+                  lineStyle: { width: 2.4, color: "#f59e0b" },
+                  itemStyle: { color: "#f59e0b" },
+                },
+                {
+                  name: "MBE",
+                  type: "line",
+                  yAxisIndex: 1,
+                  smooth: true,
+                  showSymbol: false,
+                  data: trainingSummarySeries.mbe,
+                  lineStyle: { width: 2.4, color: "#22c55e" },
+                  itemStyle: { color: "#22c55e" },
+                },
+              ],
+            },
+            true
+          );
+        }
+
+        function renderSimulationSection() {
+          syncAnalysisDateSelector();
+          const model = buildAnalysisModel();
+          const rangeText =
+            model.rangeDates.length === 0
+              ? "--"
+              : model.rangeDates.length === 1
+                ? model.rangeDates[0]
+                : `${model.rangeDates[0]} 至 ${
+                    model.rangeDates[model.rangeDates.length - 1]
+                  }`;
+          const selectedTitle =
+            state.analysisVpp === analysisAllVpps
+              ? "全部 VPP 聚合"
+              : visualMeta[state.analysisVpp]?.title || state.analysisVpp;
+          const columnText = model.columns.join(", ");
+
+          setText(elements.metricSimulationRevenue, formatRevenueValue(model.totalRevenue));
+          setText(
+            elements.metricSimulationNote,
+            `${selectedTitle} · ${state.analysisHorizon}天区间 · ${formatPercent(
+              model.coveragePct,
+              0
+            )} 覆盖`
+          );
+          setText(
+            elements.analysisSummaryLabel,
+            `${selectedTitle} · ${rangeText} · ${model.filledPoints}/${model.slots.length} 个有效刻度`
+          );
+          setText(
+            elements.analysisChartTitle,
+            state.analysisVpp === analysisAllVpps
+              ? "聚合投标、调度与收益快照"
+              : `${selectedTitle} 运行快照`
+          );
+          setText(
+            elements.analysisChartMeta,
+            "主图叠加发电、投标、调度与累计收益，保持仿真结果分析页的取数和计算口径。"
+          );
+          setText(elements.analysisRangeLabel, rangeText);
+          setText(elements.analysisRevenue, formatRevenueValue(model.totalRevenue));
+          setText(
+            elements.analysisDeviation,
+            model.avgDeviation === null ? "--" : `${formatSimple(model.avgDeviation, 2)} MWh`
+          );
+          setText(
+            elements.analysisPower,
+            model.maxBatteryPower === null
+              ? "--"
+              : `${formatSimple(model.maxBatteryPower, 2)} MW`
+          );
+          setText(
+            elements.analysisSocRange,
+            model.socMinPct === null || model.socMaxPct === null
+              ? "--"
+              : `${formatPercent(model.socMinPct, 1)} - ${formatPercent(
+                  model.socMaxPct,
+                  1
+                )}`
+          );
+          setText(
+            elements.analysisCoverage,
+            `${model.filledPoints}/${model.slots.length} (${formatPercent(
+              model.coveragePct,
+              0
+            )})`
+          );
+          setText(
+            elements.analysisFiles,
+            model.files
+              .map((file) => String(file).split("/").pop())
+              .join(" / ") || "--"
+          );
+          setText(elements.visualGeneratedAt, visualData.generatedAt || "--");
+          setText(elements.visualSource, visualData.source || "--");
+          setText(elements.visualSelectedVpp, selectedTitle);
+          setText(elements.visualColumns, columnText || "--");
+          setText(
+            elements.sidebarVisualSource,
+            `仿真数据源: ${visualData.source || "--"}`
+          );
+          setText(
+            elements.analysisTimeline1,
+            `${state.analysisHorizon} 天区间共 ${model.slots.length} 个 15 分钟刻度，直接由仿真 Excel 日切片拼接。`
+          );
+          setText(
+            elements.analysisTimeline2,
+            "调度量按照 发电量 + 储能电量变化 计算，储能功率由 SOC 差分换算。"
+          );
+          setText(
+            elements.analysisTimeline3,
+            state.analysisVpp === analysisAllVpps
+              ? "聚合视图下发电、投标、SOC 和调度量按所有 VPP 求和，电价按有效记录取均值。"
+              : `${selectedTitle} 采用原始列 ${columnText || "--"}，保留缺失时段，不做插值补点。`
+          );
+          setText(
+            elements.analysisTimeline4,
+            "累计收益口径为 调度量 × 电价，便于与仿真分析页中的收益辅助视图保持一致。"
+          );
+
+          elements.analysisDatasetBody.innerHTML = Object.entries(visualDatasets)
+            .map(([id, dataset]) => {
+              return `
+                <tr>
+                  <td>${id}</td>
+                  <td>${formatCount(dataset.rowCount)}</td>
+                  <td>${formatCount(dataset.dayCount)}</td>
+                  <td>${(dataset.columns || []).join(", ")}</td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          charts.analysisOverview.setOption(
+            {
+              backgroundColor: "transparent",
+              tooltip: { trigger: "axis" },
+              legend: {
+                top: 8,
+                textStyle: { color: "#cbd5e1" },
+                data: ["发电", "投标", "调度", "累计收益"],
+              },
+              grid: { top: 52, left: 56, right: 56, bottom: 48 },
+              xAxis: {
+                type: "category",
+                data: model.axisLabels,
+                axisLine: MarketUI.axisLine,
+                axisLabel: {
+                  color: MarketUI.chartText,
+                  interval: state.analysisHorizon === 1 ? 7 : 15,
+                  formatter(value, index) {
+                    const slot = model.slots[index];
+                    if (!slot) return value;
+                    if (state.analysisHorizon === 1) return slot.time;
+                    return slot.time === "00:00"
+                      ? `${slot.date.slice(5)}\n${slot.time}`
+                      : slot.time;
+                  },
+                },
+              },
+              yAxis: [
+                {
+                  type: "value",
+                  name: "MWh / MW",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: MarketUI.dashedGrid,
+                },
+                {
+                  type: "value",
+                  name: "收益",
+                  nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
+                  axisLabel: { color: MarketUI.chartText },
+                  splitLine: { show: false },
+                },
+              ],
+              series: [
+                {
+                  name: "发电",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: model.genSeries,
+                  lineStyle: { width: 2.6, color: "#22c55e" },
+                  itemStyle: { color: "#22c55e" },
+                },
+                {
+                  name: "投标",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: model.bidSeries,
+                  lineStyle: { width: 2.3, type: "dashed", color: "#f59e0b" },
+                  itemStyle: { color: "#f59e0b" },
+                },
+                {
+                  name: "调度",
+                  type: "line",
+                  smooth: true,
+                  showSymbol: false,
+                  data: model.dispatchSeries,
+                  lineStyle: { width: 2.8, color: "#60a5fa" },
+                  itemStyle: { color: "#60a5fa" },
+                },
+                {
+                  name: "累计收益",
+                  type: "line",
+                  yAxisIndex: 1,
+                  smooth: true,
+                  showSymbol: false,
+                  data: model.cumulativeRevenueSeries,
+                  lineStyle: { width: 2.8, color: "#a855f7" },
+                  itemStyle: { color: "#a855f7" },
+                },
+              ],
+            },
+            true
+          );
+        }
+
+        function render() {
+          renderMarketSection();
+          renderAlgorithmSection();
+          renderSimulationSection();
+        }
+
+        populateSelectors();
+        window.SystemAccess.mountUserPanel("sessionPanel");
+        render();
+
+        window.addEventListener("resize", () => {
+          Object.values(charts).forEach((chart) => chart.resize());
+        });
+      })().catch((error) => {
+        console.error("Failed to initialize index.html", error);
+      });
+    </script>
+  </body>
+</html>
