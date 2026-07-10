@@ -1,10 +1,11 @@
 (function () {
-  const visualData = window.VPP_VISUAL_DATA;
-  const root = document.getElementById("analysisApp");
+  function createAnalysisVisualization(visualDataSource) {
+    const visualData = visualDataSource || {};
+    const root = document.getElementById("analysisApp");
 
-  if (!root || !visualData || !visualData.datasets || !window.echarts) {
-    return;
-  }
+    if (!root || !visualData || !visualData.datasets || !window.echarts) {
+      return null;
+    }
 
   const QUARTER_HOURS = 0.25;
   const DEFAULT_DATE = "2019-01-15";
@@ -1024,15 +1025,26 @@
       .pop();
   }
 
-  window.AnalysisVisualization = {
-    allVpps: ALL_VPPS,
-    tabs: TAB_IDS,
-    horizons: HORIZONS,
-    getInitialState: () => ({ ...state }),
-    getAvailableDates,
-    getSelectableDates,
-    getVppOptions,
-    normalizeState,
-    render,
-  };
+    return {
+      allVpps: ALL_VPPS,
+      tabs: TAB_IDS,
+      horizons: HORIZONS,
+      getInitialState: () => ({ ...state }),
+      getAvailableDates,
+      getSelectableDates,
+      getVppOptions,
+      normalizeState,
+      render,
+    };
+  }
+
+  window.createAnalysisVisualization = createAnalysisVisualization;
+  if (window.VPP_VISUAL_DATA) {
+    const analysisVisualization = createAnalysisVisualization(
+      window.VPP_VISUAL_DATA,
+    );
+    if (analysisVisualization) {
+      window.AnalysisVisualization = analysisVisualization;
+    }
+  }
 })();
