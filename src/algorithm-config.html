@@ -1,0 +1,1238 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>策略能力配置 - GridPulse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <script src="assets/data.js"></script>
+    <script src="assets/market-ui.js"></script>
+    <script src="assets/system-access.js"></script>
+    <script>
+      window.SystemAccess.requireAuth("algorithm-config.html");
+    </script>
+    <script src="https://unpkg.com/@antv/g6@4.8.24/dist/g6.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #020617;
+        color: #f8fafc;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-item-active {
+        background: linear-gradient(
+          90deg,
+          rgba(59, 130, 246, 0.2) 0%,
+          rgba(59, 130, 246, 0) 100%
+        );
+        border-left: 4px solid #3b82f6;
+      }
+
+      .data-section {
+        border: 1px solid rgba(59, 130, 246, 0.18);
+        background: rgba(15, 23, 42, 0.68);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .section-title {
+        background: rgba(37, 99, 155, 0.28);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.14);
+      }
+
+      .chart-card {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .page-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .page-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .strategy-sticky-section {
+        position: sticky;
+        top: 1rem;
+        z-index: 30;
+        box-shadow: 0 18px 42px rgba(2, 6, 23, 0.28);
+      }
+
+      .select-dark {
+        width: 360px;
+        max-width: 100%;
+        height: 34px;
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(56, 189, 248, 0.45);
+        border-radius: 4px;
+        color: #e2e8f0;
+        outline: none;
+        padding: 0 36px 0 12px;
+      }
+
+      .kv-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.72);
+        padding: 12px 14px;
+      }
+
+      .kv-row:last-child {
+        border-bottom: 0;
+      }
+
+      .kv-label {
+        color: #94a3b8;
+        font-size: 14px;
+      }
+
+      .kv-value {
+        color: #dbeafe;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .kv-value.wrap {
+        white-space: normal;
+        max-width: 62%;
+      }
+
+      .hero-note {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .hero-item {
+        padding: 14px 16px;
+        border: 1px solid rgba(51, 65, 85, 0.7);
+        border-radius: 8px;
+        background: rgba(2, 6, 23, 0.28);
+      }
+
+      .hero-item-label {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .hero-item-value {
+        color: #e0f2fe;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .admin-inline-input,
+      .admin-inline-select {
+        width: 156px;
+        max-width: 62%;
+        margin-left: auto;
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 6px;
+        background: rgba(2, 6, 23, 0.72);
+        color: #e0f2fe;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 10px;
+        outline: none;
+        color-scheme: dark;
+        transition: border-color 160ms ease, box-shadow 160ms ease,
+          background-color 160ms ease;
+      }
+
+      .admin-inline-input {
+        text-align: right;
+        padding-right: 10px;
+      }
+
+      .admin-inline-select {
+        appearance: none;
+        padding-right: 28px;
+        text-align: left;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #7dd3fc 50%),
+          linear-gradient(135deg, #7dd3fc 50%, transparent 50%),
+          linear-gradient(180deg, rgba(14, 116, 144, 0.18), rgba(15, 23, 42, 0));
+        background-position:
+          calc(100% - 16px) calc(50% - 2px),
+          calc(100% - 11px) calc(50% - 2px),
+          calc(100% - 30px) 50%;
+        background-size: 5px 5px, 5px 5px, 1px 60%;
+        background-repeat: no-repeat;
+      }
+
+      .admin-inline-input:focus,
+      .admin-inline-select:focus {
+        border-color: rgba(56, 189, 248, 0.75);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+      }
+
+      .admin-inline-input[type="number"]::-webkit-inner-spin-button {
+        width: 16px;
+        min-height: 28px;
+        margin: 0 1px 0 6px;
+        border-left: 1px solid rgba(14, 116, 144, 0.32);
+        border-radius: 0 3px 3px 0;
+        background:
+          linear-gradient(180deg, rgba(56, 189, 248, 0.22), rgba(14, 165, 233, 0.06)),
+          rgba(15, 23, 42, 0.92);
+        cursor: pointer;
+        filter: invert(0.12) sepia(0.35) saturate(2.4) hue-rotate(165deg)
+          brightness(1.28);
+        opacity: 0.92;
+        transition: opacity 160ms ease, filter 160ms ease, background 160ms ease;
+      }
+
+      .admin-inline-input[type="number"]::-webkit-inner-spin-button:hover {
+        background:
+          linear-gradient(180deg, rgba(56, 189, 248, 0.3), rgba(14, 165, 233, 0.12)),
+          rgba(15, 23, 42, 0.96);
+        opacity: 1;
+        filter: invert(0.08) sepia(0.38) saturate(2.6) hue-rotate(165deg)
+          brightness(1.34);
+      }
+
+      .admin-inline-input[type="number"]:focus::-webkit-inner-spin-button {
+        border-left-color: rgba(56, 189, 248, 0.46);
+      }
+
+      .admin-inline-input[type="number"]::-webkit-outer-spin-button {
+        margin: 0;
+      }
+
+      @supports (-moz-appearance: auto) {
+        .admin-inline-input[type="number"] {
+          padding-right: 6px;
+        }
+      }
+
+      @media (max-width: 1280px) {
+        .hero-note {
+          grid-template-columns: 1fr;
+        }
+        body {
+          overflow: auto;
+        }
+        .page-main {
+          overflow-y: auto;
+        }
+        .page-content {
+          overflow: visible;
+        }
+        .strategy-sticky-section {
+          position: static;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex h-screen overflow-hidden">
+    <aside class="w-64 glass-panel flex flex-col h-full z-50">
+      <div class="p-6 flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50"
+        >
+          <span
+            class="iconify text-2xl"
+            data-icon="mdi:transmission-tower"
+          ></span>
+        </div>
+        <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
+      </div>
+      <nav class="flex-1 mt-4 px-4 space-y-2">
+        <a
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="index.html"
+        >
+          <span class="iconify" data-icon="mdi:view-dashboard"></span> 系统总览
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="data-management.html"
+        >
+          <span class="iconify" data-icon="mdi:database-cog"></span>
+          基础数据管理
+        </a>
+        <a
+          class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg text-blue-400"
+          href="algorithm-config.html"
+        >
+          <span class="iconify" data-icon="mdi:brain"></span> 策略能力配置
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="analysis.html"
+        >
+          <span class="iconify" data-icon="mdi:chart-box"></span> 仿真结果分析
+        </a>
+      </nav>
+    </aside>
+
+    <main class="page-main">
+      <header
+        class="h-16 glass-panel flex items-center justify-between px-8 sticky top-0 z-40"
+      >
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <span
+            class="iconify text-blue-500"
+            data-icon="mdi:head-cog-outline"
+          ></span>
+          策略能力配置
+        </h2>
+        <div class="flex items-center gap-3">
+          <div class="text-sm text-slate-400">
+            <!-- 算法配置.xlsx 驱动的策略能力配置 -->
+          </div>
+          <div id="sessionPanel"></div>
+        </div>
+      </header>
+
+      <div class="page-content p-4 xl:p-5 space-y-4">
+        <section class="data-section strategy-sticky-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+              智能报价策略
+            </h3>
+            <p class="hidden md:block text-sm text-slate-400">
+              <!-- 来源: ../数据集/算法配置.xlsx -->
+            </p>
+          </div>
+          <div class="p-4 space-y-4">
+            <div
+              class="chart-card px-5 py-4 min-h-[76px] flex flex-col xl:flex-row xl:items-center gap-4"
+            >
+              <div class="flex items-center gap-4">
+                <label class="text-sm font-bold text-white">选择算法:</label>
+                <select class="select-dark" id="algorithmSelect"></select>
+              </div>
+              <div class="text-sm text-slate-400">
+                <!-- 当前页展示算法配置文件中的策略能力说明与关键参数 -->
+              </div>
+            </div>
+            <div class="hero-note">
+              <div class="hero-item">
+                <div class="hero-item-label">核心功能</div>
+                <div class="hero-item-value" id="heroCoreFunction">--</div>
+              </div>
+              <div class="hero-item">
+                <div class="hero-item-label">投标方式</div>
+                <div class="hero-item-value" id="heroBidLogic">--</div>
+              </div>
+              <div class="hero-item">
+                <div class="hero-item-label">联合控制</div>
+                <div class="hero-item-value" id="heroControlScope">--</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+              策略配置概览
+            </h3>
+            <p class="hidden md:block text-sm text-slate-400">
+              训练基础参数、网络结构与探索噪声配置
+            </p>
+          </div>
+          <div class="p-4 grid grid-cols-12 gap-4">
+            <div class="chart-card col-span-12 xl:col-span-3">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+                  运行基础配置
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">VPP数量</span>
+                  <span class="kv-value" id="agentCount">--</span>
+                  <input class="admin-inline-input hidden" id="agentCountInput" inputmode="numeric" max="6" min="3" placeholder="建议值3-6" step="1" type="number" />
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">总训练轮数</span>
+                  <span class="kv-value" id="totalEpisode">--</span>
+                  <input class="admin-inline-input hidden" id="totalEpisodeInput" inputmode="numeric" max="1000" min="500" placeholder="建议值500-1000" step="1" type="number" />
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">年度样本点</span>
+                  <span class="kv-value" id="sampleCount">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">时间分辨率</span>
+                  <span class="kv-value">15 分钟</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">时间窗口长度 T_horizon</span>
+                  <span class="kv-value" id="horizon">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">每次更新轮次 K_epoch</span>
+                  <span class="kv-value" id="kEpoch">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card col-span-12 xl:col-span-3">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                  策略调优配置
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">学习率</span>
+                  <span class="kv-value" id="learningRate">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">收益折扣系数 gamma</span>
+                  <span class="kv-value" id="gamma">--</span>
+                  <input class="admin-inline-input hidden" id="gammaInput" inputmode="decimal" max="0.99" min="0.9" placeholder="建议值0.9-0.99" step="0.01" type="number" />
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">优势估计系数 lambda</span>
+                  <span class="kv-value" id="lambda">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">策略裁剪系数 eps_clip</span>
+                  <span class="kv-value" id="epsClip">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">价值损失权重 C_value</span>
+                  <span class="kv-value" id="valueCoeff">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">动作扰动强度 sigma²</span>
+                  <span class="kv-value" id="actionVariance">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">优化器</span>
+                  <span class="kv-value" id="optimizer">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">更新策略</span>
+                  <span class="kv-value wrap" id="updateStrategy">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card col-span-12 xl:col-span-3">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                  模型结构说明
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">网络类型</span>
+                  <span class="kv-value" id="networkType">--</span>
+                  <select class="admin-inline-select hidden" id="networkTypeInput">
+                    <option value="LSTM">LSTM</option>
+                    <option value="GRU">GRU</option>
+                  </select>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">LSTM层数</span>
+                  <span class="kv-value" id="nLayers">--</span>
+                  <input class="admin-inline-input hidden" id="nLayersInput" inputmode="numeric" max="4" min="1" placeholder="建议值1-4" step="1" type="number" />
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">输入信息维度 in_size</span>
+                  <span class="kv-value" id="inputSize">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">隐藏层维度</span>
+                  <span class="kv-value" id="hiddenSize">--</span>
+                  <select class="admin-inline-select hidden" id="hiddenSizeInput">
+                    <option value="64">64</option>
+                    <option value="128">128</option>
+                    <option value="256">256</option>
+                  </select>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">输出结果维度 out_size</span>
+                  <span class="kv-value" id="outputSize">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">激活函数</span>
+                  <span class="kv-value" id="activation">--</span>
+                  <select class="admin-inline-select hidden" id="activationInput">
+                    <option value="ReLU">ReLU</option>
+                    <option value="Tanh">Tanh</option>
+                  </select>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">参数共享</span>
+                  <span class="kv-value wrap" id="sharedParams">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card col-span-12 xl:col-span-3">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                  市场环境边界
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">平均电价</span>
+                  <span class="kv-value" id="avgPrice">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">电价范围</span>
+                  <span class="kv-value" id="priceRange">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">新能源占比</span>
+                  <span class="kv-value" id="renewableShare">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">年度收益估算</span>
+                  <span class="kv-value" id="revenue">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">联合控制范围</span>
+                  <span class="kv-value wrap" id="controlScope">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+              策略组成说明
+            </h3>
+            <p class="hidden md:block text-sm text-slate-400">
+              深度强化学习网络结构与策略形成方式说明
+            </p>
+          </div>
+          <div class="p-4 grid grid-cols-12 gap-4">
+            <div class="chart-card col-span-12 xl:col-span-6">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                  能力组成
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">输入层</span>
+                  <span class="kv-value wrap" id="inputLayer">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">LSTM层</span>
+                  <span class="kv-value wrap" id="lstmLayer">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">Actor头</span>
+                  <span class="kv-value wrap" id="compActorHead">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">Critic头</span>
+                  <span class="kv-value wrap" id="compCriticHead">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card col-span-12 xl:col-span-6">
+              <div class="section-title px-3 py-2">
+                <h3 class="font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
+                  策略说明
+                </h3>
+              </div>
+              <div>
+                <div class="kv-row">
+                  <span class="kv-label">算法类型</span>
+                  <span class="kv-value wrap" id="algorithmType">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">核心功能</span>
+                  <span class="kv-value wrap" id="coreFunction">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">输出动作</span>
+                  <span class="kv-value wrap" id="actionDefinition">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">投标值形成方式</span>
+                  <span class="kv-value wrap" id="bidLogic">--</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">电池控制</span>
+                  <span class="kv-value wrap" id="batteryControl">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section> -->
+
+        <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+              神经网络结构可视化
+            </h3>
+            <p class="hidden md:block text-sm text-slate-400">
+              Actor-Critic 架构与循环网络层级结构示意图
+            </p>
+          </div>
+          <div class="p-4">
+            <div class="chart-card p-6">
+              <div id="networkVisualization" class="w-full flex items-center justify-center min-h-[360px]"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <script>
+      window.SystemAccess.mountUserPanel("sessionPanel");
+      const set = MarketUI.setText;
+      const algorithmConfig = MarketUI.data.algorithmConfig || {};
+      const algorithms = algorithmConfig.algorithms || [];
+      const isAdminView = window.SystemAccess.isAdmin();
+      const ADMIN_EDIT_STORAGE_KEY = "gridpulse_algorithm_admin_edits";
+      let selectedAlgorithmId = "deepBid";
+      let adminDraftValues = {};
+      const adminEditableFields = {
+        agentCount: document.getElementById("agentCountInput"),
+        totalEpisode: document.getElementById("totalEpisodeInput"),
+        gamma: document.getElementById("gammaInput"),
+        networkType: document.getElementById("networkTypeInput"),
+        nLayers: document.getElementById("nLayersInput"),
+        hiddenSize: document.getElementById("hiddenSizeInput"),
+        activation: document.getElementById("activationInput"),
+      };
+      const adminEditableTargets = {
+        agentCount: document.getElementById("agentCount"),
+        totalEpisode: document.getElementById("totalEpisode"),
+        gamma: document.getElementById("gamma"),
+        networkType: document.getElementById("networkType"),
+        nLayers: document.getElementById("nLayers"),
+        hiddenSize: document.getElementById("hiddenSize"),
+        activation: document.getElementById("activation"),
+      };
+
+      const escapeHtml = (value) =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+
+      const findParam = (algorithm, patterns) => {
+        const params = algorithm?.parameters || [];
+        const list = Array.isArray(patterns) ? patterns : [patterns];
+        return (
+          params.find((param) =>
+            list.some((pattern) =>
+              typeof pattern === "string"
+                ? param.label.includes(pattern)
+                : pattern.test(param.label)
+            )
+          ) || null
+        );
+      };
+
+      const paramValue = (algorithm, patterns, fallback = "--") =>
+        findParam(algorithm, patterns)?.value || fallback;
+
+      const paramDescription = (algorithm, patterns, fallback = "--") => {
+        const item = findParam(algorithm, patterns);
+        if (!item) return fallback;
+        return item.description || item.value || fallback;
+      };
+
+      const selectedAlgorithm = () =>
+        algorithms.find((item) => item.id === selectedAlgorithmId) ||
+        algorithms[0] ||
+        {};
+
+      const readAdminEdits = () => {
+        try {
+          return JSON.parse(localStorage.getItem(ADMIN_EDIT_STORAGE_KEY) || "{}");
+        } catch (error) {
+          return {};
+        }
+      };
+
+      const writeAdminEdits = (value) => {
+        localStorage.setItem(ADMIN_EDIT_STORAGE_KEY, JSON.stringify(value));
+      };
+
+      const isActiveInput = (input) => document.activeElement === input;
+
+      const normalizeNamedOption = (value, options, fallback) => {
+        const text = String(value || "").trim();
+        const matched = options.find((option) => text === option || text.includes(option));
+        return matched || fallback;
+      };
+
+      const getBaseAdminConfig = (algorithm) => ({
+        agentCount: String(MarketUI.data.vpps.length),
+        totalEpisode: String(
+          algorithm.trainingBudget || paramValue(algorithm, "总训练轮数", "500")
+        ),
+        gamma: String(
+          paramValue(algorithm, ["折扣因子", "折扣因子 γ"], "0.99")
+        ),
+        networkType: normalizeNamedOption(
+          paramValue(algorithm, ["神经网络", "网络类型"], "LSTM"),
+          ["LSTM", "GRU"],
+          "LSTM"
+        ),
+        nLayers: String(parseInt(paramValue(algorithm, "LSTM层数", "2"), 10) || 2),
+        hiddenSize: normalizeNamedOption(
+          String(parseInt(paramValue(algorithm, "隐藏层维度", "64"), 10) || 64),
+          ["64", "128", "256"],
+          "64"
+        ),
+        activation: normalizeNamedOption(
+          paramValue(algorithm, ["激活函数", "输出激活"], "ReLU"),
+          ["ReLU", "Tanh"],
+          "ReLU"
+        ),
+      });
+
+      const getEffectiveAdminConfig = (algorithm) => {
+        const base = getBaseAdminConfig(algorithm);
+        if (!isAdminView) return base;
+
+        const store = readAdminEdits();
+        const algorithmEdits =
+          (store.algorithms && store.algorithms[selectedAlgorithmId]) || {};
+        const globalEdits = store.global || {};
+
+        return {
+          ...base,
+          agentCount: globalEdits.agentCount || base.agentCount,
+          totalEpisode: algorithmEdits.totalEpisode || base.totalEpisode,
+          gamma: algorithmEdits.gamma || base.gamma,
+          networkType: algorithmEdits.networkType || base.networkType,
+          nLayers: algorithmEdits.nLayers || base.nLayers,
+          hiddenSize: algorithmEdits.hiddenSize || base.hiddenSize,
+          activation: algorithmEdits.activation || base.activation,
+        };
+      };
+
+      const normalizeAdminValue = (field, rawValue) => {
+        const trimmed = String(rawValue ?? "").trim();
+        const numeric = Number(trimmed);
+        const clamp = (value, min, max) =>
+          Math.min(Math.max(value, min), max);
+
+        switch (field) {
+          case "agentCount":
+            if (!Number.isFinite(numeric)) return null;
+            return String(clamp(Math.round(numeric), 3, 6));
+          case "totalEpisode":
+            if (!Number.isFinite(numeric)) return null;
+            return String(clamp(Math.round(numeric), 500, 1000));
+          case "gamma":
+            if (!Number.isFinite(numeric)) return null;
+            return clamp(Number(numeric.toFixed(2)), 0.9, 0.99).toFixed(2);
+          case "networkType":
+            return ["LSTM", "GRU"].includes(trimmed) ? trimmed : null;
+          case "nLayers":
+            if (!Number.isFinite(numeric)) return null;
+            return String(clamp(Math.round(numeric), 1, 4));
+          case "hiddenSize":
+            return ["64", "128", "256"].includes(trimmed) ? trimmed : null;
+          case "activation":
+            return ["ReLU", "Tanh"].includes(trimmed) ? trimmed : null;
+          default:
+            return null;
+        }
+      };
+
+      const saveAdminValue = (field, value) => {
+        const store = readAdminEdits();
+        if (field === "agentCount") {
+          store.global = { ...(store.global || {}), agentCount: value };
+        } else {
+          store.algorithms = store.algorithms || {};
+          store.algorithms[selectedAlgorithmId] = {
+            ...(store.algorithms[selectedAlgorithmId] || {}),
+            [field]: value,
+          };
+        }
+        writeAdminEdits(store);
+      };
+
+      const syncAdminEditableState = (effectiveConfig) => {
+        Object.entries(adminEditableFields).forEach(([field, input]) => {
+          const display = adminEditableTargets[field];
+          if (!input || !display) return;
+
+          input.classList.toggle("hidden", !isAdminView);
+          display.classList.toggle("hidden", isAdminView);
+
+          if (isAdminView) {
+            const draftValue = adminDraftValues[field];
+            if (isActiveInput(input) && draftValue !== undefined) {
+              return;
+            }
+            input.value =
+              draftValue !== undefined ? draftValue : effectiveConfig[field];
+          }
+        });
+      };
+
+      const commitAdminInput = (field, input) => {
+        const normalized = normalizeAdminValue(field, input.value);
+        if (!normalized) {
+          delete adminDraftValues[field];
+          input.value = getEffectiveAdminConfig(selectedAlgorithm())[field];
+          return;
+        }
+        delete adminDraftValues[field];
+        saveAdminValue(field, normalized);
+        render(MarketUI.selectedYear());
+      };
+
+      const bindAdminInputs = () => {
+        if (!isAdminView) return;
+
+        Object.entries(adminEditableFields).forEach(([field, input]) => {
+          if (!input) return;
+          input.addEventListener("input", () => {
+            if (input.type === "number") {
+              input.value = input.value.replace(/[^\d.]/g, "");
+            }
+            adminDraftValues[field] = input.value;
+          });
+          input.addEventListener("change", () => {
+            commitAdminInput(field, input);
+          });
+          input.addEventListener("blur", () => {
+            commitAdminInput(field, input);
+          });
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              input.blur();
+            }
+          });
+        });
+      };
+
+      const initAlgorithmSelector = () => {
+        const selector = document.getElementById("algorithmSelect");
+        if (!selector || algorithms.length === 0) return;
+        selector.innerHTML = algorithms
+          .map(
+            (item) =>
+              `<option value="${escapeHtml(item.id)}">${escapeHtml(
+                item.displayName
+              )} - ${escapeHtml(item.category)}</option>`
+          )
+          .join("");
+        selectedAlgorithmId = algorithms.find((item) => item.id === "deepBid")
+          ? "deepBid"
+          : algorithms[0].id;
+        selector.value = selectedAlgorithmId;
+        selector.addEventListener("change", () => {
+          adminDraftValues = {};
+          selectedAlgorithmId = selector.value;
+          render(MarketUI.selectedYear());
+        });
+      };
+
+      const renderAlgorithmConfig = () => {
+        const algorithm = selectedAlgorithm();
+        const effective = getEffectiveAdminConfig(algorithm);
+        set("totalEpisode", effective.totalEpisode);
+        set("horizon", paramValue(algorithm, ["时间步长", "时间窗口"], "--"));
+        set("kEpoch", paramValue(algorithm, "每次更新epoch数", "--"));
+        set("learningRate", paramValue(algorithm, "学习率", "--"));
+        set("gamma", effective.gamma);
+        set("lambda", paramValue(algorithm, ["GAE参数", "GAE参数 λ"], "--"));
+        set("epsClip", paramValue(algorithm, ["裁剪系数", "裁剪系数 ε"], "--"));
+        set("valueCoeff", paramValue(algorithm, ["价值系数", "C_value"], "--"));
+        set("actionVariance", paramValue(algorithm, ["动作方差", "动作扰动"], "--"));
+        set("optimizer", paramValue(algorithm, "优化器", "--"));
+        set("updateStrategy", paramValue(algorithm, "更新策略", "--"));
+        set("networkType", effective.networkType);
+        set("nLayers", effective.nLayers);
+        set("inputSize", paramValue(algorithm, "输入维度", "--"));
+        set("hiddenSize", effective.hiddenSize);
+        set("outputSize", paramValue(algorithm, "输出维度", "--"));
+        set("activation", effective.activation);
+        set("sharedParams", paramValue(algorithm, "参数共享", "--"));
+        set("inputLayer", paramValue(algorithm, "输入层", "--"));
+        set("lstmLayer", paramDescription(algorithm, "LSTM层", "--"));
+        set("compActorHead", paramDescription(algorithm, ["策略头", "Actor"], "--"));
+        set("compCriticHead", paramDescription(algorithm, ["价值头", "Critic"], "--"));
+        set("algorithmType", paramValue(algorithm, ["算法类型", "策略类型"], algorithm.category || "--"));
+        set("coreFunction", paramValue(algorithm, "核心功能", algorithm.coreFunction || "--"));
+        set("actionDefinition", paramValue(algorithm, "动作定义", algorithm.actionDefinition || "--"));
+        set("bidLogic", paramValue(algorithm, ["投标值确定", "投标值"], "--"));
+        set("batteryControl", paramValue(algorithm, ["电池使用", "动作定义", "优化变量"], "--"));
+        set("heroCoreFunction", algorithm.coreFunction || "--");
+        set("heroBidLogic", algorithm.objective || "--");
+        set("heroControlScope", algorithm.actionDefinition || "--");
+        syncAdminEditableState(effective);
+      };
+
+      const renderMarketData = (year) => {
+        const yd = MarketUI.yearData(year);
+        const summary = yd.summary;
+        const effective = getEffectiveAdminConfig(selectedAlgorithm());
+
+        set("agentCount", `${effective.agentCount} 个`);
+        set("sampleCount", `${summary.count.toLocaleString("zh-CN")} 点`);
+        set("avgPrice", `${MarketUI.number(summary.avgPrice, 2)} €/MWh`);
+        set(
+          "priceRange",
+          `${MarketUI.number(summary.minPrice, 1)}-${MarketUI.number(summary.maxPrice, 1)}`
+        );
+        set("renewableShare", `${MarketUI.number(summary.renewableShare, 1)}%`);
+        set("revenue", `${MarketUI.number(summary.revenueWan, 1)} 万€`);
+        renderAlgorithmConfig();
+      };
+
+      // Neural Network Visualization — 基于图1 LSTM网络结构
+      let nnGraph = null;
+
+      const renderNeuralNetwork = () => {
+        const algorithm = selectedAlgorithm();
+        const container = document.getElementById("networkVisualization");
+        if (!container) return;
+
+        if (nnGraph) {
+          nnGraph.destroy();
+          nnGraph = null;
+        }
+
+        const effective = getEffectiveAdminConfig(algorithm);
+        const inputSize = parseInt(paramValue(algorithm, "输入维度", "3")) || 3;
+        const hiddenSize = parseInt(effective.hiddenSize, 10) || 64;
+        const nLayers = parseInt(effective.nLayers, 10) || 2;
+        const outputSize = parseInt(paramValue(algorithm, "输出维度", "2")) || 2;
+        const activation = effective.activation || "ReLU";
+        const networkType = effective.networkType || "LSTM";
+
+        const W = container.offsetWidth || 1200;
+        const H = 500;
+
+        const nodes = [];
+        const edges = [];
+
+        // 布局参数
+        const startX = 80;
+        const lstmWidth = 200;
+        const lstmSpacing = 250;
+
+        // 输入层 x_t
+        const inputY = H - 100;
+        nodes.push({
+          id: 'input_x',
+          label: 'x_t',
+          x: startX,
+          y: inputY,
+          type: 'circle',
+          size: 45,
+          style: { fill: '#93c5fd', stroke: '#3b82f6', lineWidth: 3 },
+          labelCfg: { style: { fill: '#1e3a8a', fontSize: 14, fontWeight: 700 } }
+        });
+
+        // h_{t-1} 和 C_{t-1} 输入
+        nodes.push({
+          id: 'h_prev',
+          label: 'h_{t-1}',
+          x: startX - 60,
+          y: H / 2,
+          type: 'rect',
+          size: [65, 35],
+          style: { fill: '#9ca3af', stroke: '#6b7280', lineWidth: 2.5 },
+          labelCfg: { style: { fill: '#f9fafb', fontSize: 12, fontWeight: 600 } }
+        });
+
+        nodes.push({
+          id: 'c_prev',
+          label: 'C_{t-1}',
+          x: startX - 60,
+          y: H / 2 - 120,
+          type: 'rect',
+          size: [65, 35],
+          style: { fill: '#9ca3af', stroke: '#6b7280', lineWidth: 2.5 },
+          labelCfg: { style: { fill: '#f9fafb', fontSize: 12, fontWeight: 600 } }
+        });
+
+        // LSTM 记忆单元 (基于图1的结构)
+        for (let l = 0; l < nLayers; l++) {
+          const lstmCenterX = startX + 150 + l * lstmSpacing;
+          const lstmCenterY = H / 2;
+          const id = `lstm_${l}`;
+
+          // LSTM 单元边框 (虚线框)
+          nodes.push({
+            id: `${id}_border`,
+            label: `${networkType}记忆单元\n隐藏层神经元: ${hiddenSize}`,
+            x: lstmCenterX,
+            y: lstmCenterY,
+            type: 'rect',
+            size: [lstmWidth, 180],
+            style: {
+              fill: 'rgba(147, 197, 253, 0.08)',
+              stroke: '#3b82f6',
+              lineWidth: 2.5,
+              lineDash: [8, 4],
+              radius: 10
+            },
+            labelCfg: {
+              position: 'top',
+              offset: 10,
+              style: { fill: '#bfdbfe', fontSize: 11, fontWeight: 600 }
+            }
+          });
+
+          // 遗忘门 (左侧, σ + ⊗)
+          nodes.push({
+            id: `${id}_forget`,
+            label: '遗忘门\nσ ⊗',
+            x: lstmCenterX - 65,
+            y: lstmCenterY - 50,
+            type: 'rect',
+            size: [55, 45],
+            style: { fill: '#fbbf24', stroke: '#f59e0b', lineWidth: 2.5, radius: 6 },
+            labelCfg: { style: { fill: '#451a03', fontSize: 10, fontWeight: 700 } }
+          });
+
+          // 输入门 (中间, σ + tanh + ⊗)
+          nodes.push({
+            id: `${id}_input`,
+            label: '输入门\nσ ⊗',
+            x: lstmCenterX,
+            y: lstmCenterY - 50,
+            type: 'rect',
+            size: [55, 45],
+            style: { fill: '#fb923c', stroke: '#f97316', lineWidth: 2.5, radius: 6 },
+            labelCfg: { style: { fill: '#431407', fontSize: 10, fontWeight: 700 } }
+          });
+
+          nodes.push({
+            id: `${id}_tanh_c`,
+            label: 'tanh\nC̃_t',
+            x: lstmCenterX,
+            y: lstmCenterY + 10,
+            type: 'rect',
+            size: [55, 45],
+            style: { fill: '#fb923c', stroke: '#f97316', lineWidth: 2.5, radius: 6 },
+            labelCfg: { style: { fill: '#431407', fontSize: 10, fontWeight: 700 } }
+          });
+
+          // 输出门 (右侧, σ + tanh + ⊗)
+          nodes.push({
+            id: `${id}_output`,
+            label: '输出门\nσ ⊗',
+            x: lstmCenterX + 65,
+            y: lstmCenterY - 50,
+            type: 'rect',
+            size: [55, 45],
+            style: { fill: '#fbbf24', stroke: '#f59e0b', lineWidth: 2.5, radius: 6 },
+            labelCfg: { style: { fill: '#451a03', fontSize: 10, fontWeight: 700 } }
+          });
+
+          nodes.push({
+            id: `${id}_tanh_h`,
+            label: 'tanh',
+            x: lstmCenterX + 65,
+            y: lstmCenterY + 30,
+            type: 'rect',
+            size: [55, 40],
+            style: { fill: '#fbbf24', stroke: '#f59e0b', lineWidth: 2.5, radius: 6 },
+            labelCfg: { style: { fill: '#451a03', fontSize: 11, fontWeight: 700 } }
+          });
+
+          // C_t 输出 (顶部)
+          nodes.push({
+            id: `${id}_c_out`,
+            label: 'C_t',
+            x: lstmCenterX,
+            y: lstmCenterY - 155,
+            type: 'rect',
+            size: [60, 35],
+            style: { fill: '#10b981', stroke: '#059669', lineWidth: 2.5, radius: 5 },
+            labelCfg: { style: { fill: '#f0fdf4', fontSize: 12, fontWeight: 700 } }
+          });
+
+          // h_t 输出 (右侧)
+          nodes.push({
+            id: `${id}_h_out`,
+            label: 'h_t',
+            x: lstmCenterX + 130,
+            y: lstmCenterY,
+            type: 'rect',
+            size: [60, 35],
+            style: { fill: '#10b981', stroke: '#059669', lineWidth: 2.5, radius: 5 },
+            labelCfg: { style: { fill: '#f0fdf4', fontSize: 12, fontWeight: 700 } }
+          });
+
+          // 连接关系
+          if (l === 0) {
+            // 第一层: 连接 x_t, h_{t-1}, C_{t-1}
+            edges.push({ source: 'input_x', target: `${id}_border` });
+            edges.push({ source: 'h_prev', target: `${id}_border` });
+            edges.push({ source: 'c_prev', target: `${id}_forget` });
+            edges.push({ source: 'c_prev', target: `${id}_c_out` });
+          } else {
+            // 后续层: 连接前一层的输出
+            edges.push({ source: `lstm_${l-1}_h_out`, target: `${id}_border` });
+            edges.push({ source: `lstm_${l-1}_c_out`, target: `${id}_forget` });
+            edges.push({ source: `lstm_${l-1}_c_out`, target: `${id}_c_out` });
+          }
+
+          // LSTM 内部连接
+          edges.push({ source: `${id}_forget`, target: `${id}_c_out` });
+          edges.push({ source: `${id}_input`, target: `${id}_c_out` });
+          edges.push({ source: `${id}_tanh_c`, target: `${id}_c_out` });
+          edges.push({ source: `${id}_c_out`, target: `${id}_output` });
+          edges.push({ source: `${id}_output`, target: `${id}_tanh_h` });
+          edges.push({ source: `${id}_tanh_h`, target: `${id}_h_out` });
+        }
+
+        const lastLstm = `lstm_${nLayers - 1}`;
+        const actorCriticX = startX + 150 + nLayers * lstmSpacing;
+
+        // Actor Network (策略网络)
+        nodes.push({
+          id: 'actor',
+          label: `Actor 策略网络\n输出维度: ${outputSize}`,
+          x: actorCriticX,
+          y: H / 2 - 100,
+          type: 'rect',
+          size: [140, 70],
+          style: { fill: '#8b5cf6', stroke: '#7c3aed', lineWidth: 3, radius: 10 },
+          labelCfg: { style: { fill: '#f5f3ff', fontSize: 12, fontWeight: 700 } }
+        });
+        edges.push({ source: `${lastLstm}_h_out`, target: 'actor' });
+
+        // Critic Network (价值网络)
+        nodes.push({
+          id: 'critic',
+          label: `Critic 价值网络\nV(s)`,
+          x: actorCriticX,
+          y: H / 2 + 100,
+          type: 'rect',
+          size: [140, 70],
+          style: { fill: '#f97316', stroke: '#ea580c', lineWidth: 3, radius: 10 },
+          labelCfg: { style: { fill: '#fff7ed', fontSize: 12, fontWeight: 700 } }
+        });
+        edges.push({ source: `${lastLstm}_h_out`, target: 'critic' });
+
+        // 输出节点
+        const outputX = actorCriticX + 150;
+
+        // Actor 输出 (动作)
+        for (let i = 0; i < outputSize; i++) {
+          const label = outputSize === 2 ? (i === 0 ? '报价bid' : '储能rat') : `a_${i+1}`;
+          nodes.push({
+            id: `out_${i}`,
+            label,
+            x: outputX,
+            y: H / 2 - 100 + (i - (outputSize - 1) / 2) * 60,
+            type: 'circle',
+            size: 42,
+            style: { fill: '#a78bfa', stroke: '#8b5cf6', lineWidth: 2.5 },
+            labelCfg: { style: { fill: '#f5f3ff', fontSize: 11, fontWeight: 600 } }
+          });
+          edges.push({ source: 'actor', target: `out_${i}` });
+        }
+
+        // Critic 输出 (状态价值)
+        nodes.push({
+          id: 'value_out',
+          label: 'V(s)\n状态价值',
+          x: outputX,
+          y: H / 2 + 100,
+          type: 'circle',
+          size: 50,
+          style: { fill: '#fb923c', stroke: '#f97316', lineWidth: 2.5 },
+          labelCfg: { style: { fill: '#fff7ed', fontSize: 11, fontWeight: 600 } }
+        });
+        edges.push({ source: 'critic', target: 'value_out' });
+
+        container.style.height = H + 'px';
+        container.innerHTML = '<div id="nnCanvas"></div>';
+
+        nnGraph = new G6.Graph({
+          container: 'nnCanvas',
+          width: W,
+          height: H,
+          fitView: true,
+          fitViewPadding: 40,
+          defaultEdge: {
+            type: 'cubic-horizontal',
+            style: {
+              stroke: '#64748b',
+              lineWidth: 2,
+              opacity: 0.7,
+              endArrow: {
+                path: G6.Arrow.triangle(8, 10, 0),
+                fill: '#64748b'
+              }
+            }
+          },
+          modes: {
+            default: ['zoom-canvas']
+          }
+        });
+
+        nnGraph.data({ nodes, edges });
+        nnGraph.render();
+      };
+
+      const render = (year) => {
+        renderMarketData(year);
+        renderNeuralNetwork();
+      };
+
+      bindAdminInputs();
+      initAlgorithmSelector();
+      const initialYear = MarketUI.initYearSelector(render);
+      render(initialYear);
+    </script>
+  </body>
+</html>
