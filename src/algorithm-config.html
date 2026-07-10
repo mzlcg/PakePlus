@@ -6,7 +6,6 @@
     <title>策略能力配置 - GridPulse AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
-    <script src="assets/data.js"></script>
     <script src="assets/market-ui.js"></script>
     <script src="assets/system-access.js"></script>
     <script>
@@ -627,6 +626,13 @@
     </main>
 
     <script>
+      (async () => {
+      const marketData = await window.SystemAccess.loadDataAsset({
+        jsonPath: "assets/data.json",
+        scriptPath: "assets/data.js",
+        globalKey: "VPP_MARKET_DATA",
+      });
+      window.MarketUI = window.createMarketUI(marketData);
       window.SystemAccess.mountUserPanel("sessionPanel");
       const set = MarketUI.setText;
       const algorithmConfig = MarketUI.data.algorithmConfig || {};
@@ -1233,6 +1239,9 @@
       initAlgorithmSelector();
       const initialYear = MarketUI.initYearSelector(render);
       render(initialYear);
+      })().catch((error) => {
+        console.error("Failed to initialize algorithm-config.html", error);
+      });
     </script>
   </body>
 </html>
