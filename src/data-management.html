@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>基础数据管理 - GridPulse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@antv/g6@4.8.24/dist/g6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="assets/market-ui.js"></script>
+    <script src="assets/system-access.js"></script>
+    <script>
+      window.SystemAccess.requireAuth("data-management.html");
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #020617;
+        color: #f8fafc;
+        margin: 0;
+        overflow: hidden;
+      }
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .sidebar-item-active {
+        background: linear-gradient(
+          90deg,
+          rgba(59, 130, 246, 0.2) 0%,
+          rgba(59, 130, 246, 0) 100%
+        );
+        border-left: 4px solid #3b82f6;
+      }
+      .data-section {
+        border: 1px solid rgba(59, 130, 246, 0.18);
+        background: rgba(15, 23, 42, 0.68);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .section-title {
+        background: rgba(37, 99, 155, 0.28);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.14);
+      }
+      .chart-card {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 6px;
+      }
+      .page-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .page-content {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .data-section-primary {
+        flex: 1.18 1 0;
+      }
+      .data-section-secondary {
+        flex: 0.82 1 0;
+      }
+      .section-body {
+        flex: 1;
+        min-height: 0;
+      }
+      .topology-layout,
+      .chart-layout {
+        height: 100%;
+      }
+      .topology-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+      }
+      .topology-graph {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+      .info-column,
+      .info-card,
+      .table-shell {
+        min-height: 0;
+      }
+      .info-column,
+      .info-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .info-card {
+        flex: 1;
+      }
+      .table-shell {
+        flex: 1;
+      }
+      .chart-flex-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+      }
+      .chart-canvas {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+      }
+      .el-table.dark-data-table {
+        --el-table-bg-color: transparent;
+        --el-table-tr-bg-color: transparent;
+        --el-table-header-bg-color: rgba(37, 99, 235, 0.22);
+        --el-table-header-text-color: #dbeafe;
+        --el-table-text-color: #f8fafc;
+        --el-table-border-color: rgba(51, 65, 85, 0.74);
+        --el-table-row-hover-bg-color: rgba(37, 99, 235, 0.12);
+        background: transparent;
+        color: #f8fafc;
+      }
+      .dark-data-table .el-table__inner-wrapper::before,
+      .dark-data-table .el-table__border-left-patch {
+        background-color: rgba(51, 65, 85, 0.74);
+      }
+      .dark-data-table .el-table__cell {
+        background: transparent;
+        border-color: rgba(51, 65, 85, 0.74);
+        text-align: center;
+      }
+      .dark-data-table th.el-table__cell {
+        background: rgba(37, 99, 235, 0.22) !important;
+        color: #dbeafe;
+        font-weight: 700;
+      }
+      .dark-data-table .cell {
+        color: inherit;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .dark-data-table .el-scrollbar__bar.is-horizontal > div,
+      .dark-data-table .el-scrollbar__bar.is-vertical > div {
+        background-color: rgba(96, 165, 250, 0.7);
+      }
+      .market-date-picker {
+        width: 150px;
+        --el-input-bg-color: rgba(15, 23, 42, 0.92);
+        --el-input-border-color: rgba(71, 85, 105, 1);
+        --el-input-hover-border-color: rgba(96, 165, 250, 0.9);
+        --el-input-focus-border-color: rgba(96, 165, 250, 1);
+        --el-input-text-color: #e2e8f0;
+        --el-input-icon-color: #94a3b8;
+      }
+      .dark-date-picker {
+        --el-bg-color-overlay: #0f172a;
+        --el-text-color-regular: #dbeafe;
+        --el-text-color-primary: #f8fafc;
+        --el-border-color-light: rgba(51, 65, 85, 0.9);
+        --el-datepicker-off-text-color: #475569;
+        --el-datepicker-header-text-color: #dbeafe;
+        --el-datepicker-icon-color: #93c5fd;
+        --el-datepicker-hover-text-color: #60a5fa;
+        --el-color-primary: #3b82f6;
+      }
+      @media (max-width: 1279px) {
+        body {
+          overflow: auto;
+        }
+        #app {
+          min-height: 100vh;
+          height: auto;
+        }
+        .page-main {
+          overflow-y: auto;
+        }
+        .page-content {
+          overflow: visible;
+        }
+        .data-section-primary,
+        .data-section-secondary {
+          flex: 0 0 auto;
+        }
+        .topology-graph,
+        .chart-canvas {
+          min-height: 220px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="flex h-screen overflow-hidden">
+      <!-- 侧边导航 -->
+      <aside class="w-64 glass-panel flex flex-col h-full z-50">
+        <div class="p-6 flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50"
+          >
+            <span
+              class="iconify text-2xl"
+              data-icon="mdi:transmission-tower"
+            ></span>
+          </div>
+          <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
+        </div>
+        <nav class="flex-1 mt-4 px-4 space-y-2">
+          <a
+            class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+            href="index.html"
+          >
+            <span class="iconify" data-icon="mdi:view-dashboard"></span>
+            系统总览
+          </a>
+          <a
+            class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg text-blue-400"
+            href="data-management.html"
+          >
+            <span class="iconify" data-icon="mdi:database-cog"></span>
+            基础数据管理
+          </a>
+          <a
+            class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+            href="algorithm-config.html"
+          >
+            <span class="iconify" data-icon="mdi:brain"></span> 策略算法配置
+          </a>
+          <a
+            class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+            href="analysis.html"
+          >
+            <span class="iconify" data-icon="mdi:chart-box"></span> 仿真结果分析
+          </a>
+        </nav>
+      </aside>
+      <main class="page-main">
+        <header
+          class="h-16 glass-panel flex items-center justify-between px-8 sticky top-0 z-40"
+        >
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <span
+              class="iconify text-blue-500"
+              data-icon="mdi:server-network"
+            ></span>
+            基础数据管理
+          </h2>
+          <div class="flex items-center gap-4">
+            <div class="text-sm text-slate-400">CSV 出力/电价与 VPP 参数接入</div>
+            <el-date-picker
+              v-model="selectedDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              format="YYYY-MM-DD"
+              :clearable="false"
+              :editable="false"
+              :disabled-date="disableUnavailableDate"
+              popper-class="dark-date-picker"
+              class="market-date-picker"
+            ></el-date-picker>
+            <div id="sessionPanel"></div>
+          </div>
+        </header>
+        <div class="page-content p-4 xl:p-5 space-y-4">
+          <section class="data-section data-section-secondary">
+            <div
+              class="section-title px-3 py-2 flex items-center justify-between gap-3"
+            >
+              <h3 class="font-bold flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+                负荷需求与新能源出力
+              </h3>
+              <p class="hidden md:block text-sm text-slate-400">
+                按日期查看原始 15 分钟颗粒度出力与价格曲线
+              </p>
+            </div>
+            <div class="section-body chart-layout p-3 grid grid-cols-12 gap-3">
+              <div class="col-span-12 xl:col-span-6 chart-card chart-flex-card p-2.5">
+                <div class="chart-canvas" id="loadRenewableChart"></div>
+              </div>
+              <div class="col-span-12 xl:col-span-6 chart-card chart-flex-card p-2.5">
+                <div class="chart-canvas" id="busRangeChart"></div>
+              </div>
+            </div>
+          </section>
+          <section class="data-section data-section-primary">
+            <div
+              class="section-title px-3 py-2 flex items-center justify-between gap-3"
+            >
+              <h3 class="font-bold flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                VPP 机组拓扑与物理参数
+              </h3>
+              <p class="hidden md:block text-sm text-slate-400">
+                基于 pandapower IEEE 39 节点网络 - 展示 VPP 接入节点与自治主体
+              </p>
+            </div>
+            <div class="section-body topology-layout p-3 grid grid-cols-12 gap-3">
+              <div
+                class="col-span-12 xl:col-span-9 chart-card topology-card p-2.5"
+              >
+                <h4 class="text-center text-base font-bold text-blue-100">
+                  IEEE 39 节点 VPP 部署拓扑
+                </h4>
+                <topology-graph :deployments="vppDeployments"></topology-graph>
+              </div>
+              <div class="col-span-12 xl:col-span-3 info-column gap-2 h-full">
+                <div class="chart-card info-card overflow-hidden">
+                  <h4 class="px-3 py-2 text-sm font-bold text-blue-100">
+                    VPP 部署与主体
+                  </h4>
+                  <div class="table-shell px-2.5 pb-2.5">
+                    <el-table
+                      class="dark-data-table"
+                      :data="vppDeploymentRows"
+                      border
+                      size="small"
+                      height="100%"
+                    >
+                      <el-table-column
+                        prop="id"
+                        label="VPP"
+                        min-width="76"
+                      ></el-table-column>
+                      <el-table-column
+                        prop="node"
+                        label="接入节点"
+                        min-width="92"
+                      ></el-table-column>
+                      <el-table-column
+                        prop="resources"
+                        label="资源组合"
+                        min-width="132"
+                      ></el-table-column>
+                      <el-table-column
+                        prop="owner"
+                        label="主体"
+                        min-width="86"
+                      ></el-table-column>
+                    </el-table>
+                  </div>
+                </div>
+                <div class="chart-card info-card overflow-hidden">
+                  <h4 class="px-3 py-2 text-sm font-bold text-blue-100">
+                    物理参数
+                  </h4>
+                  <div class="table-shell px-2.5 pb-2.5">
+                    <el-table
+                      class="dark-data-table"
+                      :data="vppPhysicalParams"
+                      :span-method="physicalParamsSpanMethod"
+                      border
+                      size="small"
+                      height="100%"
+                    >
+                      <el-table-column
+                        prop="id"
+                        label="VPP"
+                        min-width="76"
+                      ></el-table-column>
+                      <el-table-column
+                        prop="parameter"
+                        label="参数"
+                        min-width="118"
+                      ></el-table-column>
+                      <el-table-column
+                        prop="value"
+                        label="数值"
+                        min-width="116"
+                      ></el-table-column>
+                    </el-table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+        </div>
+      </main>
+    </div>
+    <script>
+      (async () => {
+      const marketData = await window.SystemAccess.loadDataAsset({
+        jsonPath: "assets/data.json",
+        scriptPath: "assets/data.js",
+        globalKey: "VPP_MARKET_DATA",
+      });
+      window.MarketUI = window.createMarketUI(marketData);
+
+      const { createApp, ref, computed, nextTick, onMounted, onBeforeUnmount, watch } = Vue;
+
+      const TopologyGraph = {
+        props: { deployments: { type: Array, default: () => [] } },
+        template: '<div class="topology-graph" ref="container"></div>',
+        setup(props) {
+          const container = ref(null);
+          const graph = ref(null);
+          let resizeObserver = null;
+          let resizeTimer = null;
+
+          const renderGraph = () => {
+            const graphContainer = container.value;
+            if (!graphContainer || !window.G6 || !props.deployments.length) return;
+            if (graph.value) graph.value.destroy();
+
+            const width = graphContainer.clientWidth;
+            const height = graphContainer.clientHeight;
+            if (!width || !height) return;
+            const centerX = width / 2;
+            const topologyBounds = {
+              left: width * 0.08,
+              right: width * 0.92,
+              top: height * 0.12,
+              bottom: height * 0.62,
+            };
+            const scatterPositions = [
+              [0.08, 0.28], [0.18, 0.16], [0.29, 0.34], [0.39, 0.12], [0.51, 0.27],
+              [0.65, 0.15], [0.78, 0.31], [0.91, 0.19], [0.14, 0.50], [0.26, 0.59],
+              [0.43, 0.48], [0.56, 0.63], [0.70, 0.50], [0.86, 0.61], [0.06, 0.78],
+              [0.19, 0.86], [0.34, 0.75], [0.49, 0.88], [0.62, 0.77], [0.82, 0.84],
+              [0.13, 0.08], [0.24, 0.24], [0.37, 0.30], [0.47, 0.18], [0.58, 0.38],
+              [0.73, 0.25], [0.86, 0.41], [0.05, 0.42], [0.20, 0.67], [0.35, 0.55],
+              [0.50, 0.58], [0.64, 0.69], [0.79, 0.55], [0.96, 0.73], [0.11, 0.94],
+              [0.28, 0.90], [0.44, 0.70], [0.67, 0.92], [0.91, 0.91],
+            ];
+            const scatterX = (ratio) => topologyBounds.left + ratio * (topologyBounds.right - topologyBounds.left);
+            const scatterY = (ratio) => topologyBounds.top + ratio * (topologyBounds.bottom - topologyBounds.top);
+            const deploymentMap = new Map(props.deployments.map((item) => [item.node, item]));
+            const focusNodes = new Set(props.deployments.map((item) => `bus-${item.node}`));
+
+            graph.value = new G6.Graph({
+              container: graphContainer,
+              width,
+              height,
+              renderer: "canvas",
+              fitView: false,
+              modes: { default: ["drag-node", "drag-canvas", "zoom-canvas"] },
+              defaultNode: {
+                type: "circle",
+                size: 24,
+                style: { fill: "rgba(15, 23, 42, 0.92)", stroke: "rgba(96, 165, 250, 0.7)", lineWidth: 1.6 },
+                labelCfg: { style: { fill: "#cbd5e1", fontSize: 10, fontWeight: 700 } },
+              },
+              defaultEdge: {
+                type: "line",
+                style: { stroke: "rgba(71, 85, 105, 0.62)", lineWidth: 1.4 },
+                labelCfg: {
+                  autoRotate: true,
+                  style: { fill: "#cbd5e1", fontSize: 11, background: { fill: "rgba(15, 23, 42, 0.72)", padding: [2, 4, 2, 4], radius: 2 } },
+                },
+              },
+            });
+
+            const nodes = Array.from({ length: 39 }, (_, index) => {
+              const nodeNo = index + 1;
+              const [xRatio, yRatio] = scatterPositions[index];
+              const deployment = deploymentMap.get(nodeNo);
+              return {
+                id: `bus-${nodeNo}`,
+                label: String(nodeNo),
+                x: scatterX(xRatio),
+                y: scatterY(yRatio),
+                size: deployment ? 34 : 22,
+                style: deployment
+                  ? { fill: deployment.color, stroke: "#f8fafc", lineWidth: 3, shadowColor: deployment.color, shadowBlur: 14 }
+                  : undefined,
+                labelCfg: {
+                  style: {
+                    fill: deployment ? "#020617" : "#cbd5e1",
+                    fontSize: deployment ? 12 : 10,
+                    fontWeight: 800,
+                  },
+                },
+              };
+            });
+            nodes.push({
+              id: "ieee39",
+              label: "pandapower\nIEEE 39",
+              x: centerX,
+              y: height * 0.69,
+              type: "rect",
+              size: [118, 46],
+              style: { fill: "rgba(30, 41, 59, 0.94)", stroke: "#93c5fd", lineWidth: 2 },
+              labelCfg: { style: { fill: "#dbeafe", fontSize: 13, fontWeight: 800 } },
+            });
+
+            const ringEdges = Array.from({ length: 39 }, (_, index) => ({
+              source: `bus-${index + 1}`,
+              target: `bus-${index === 38 ? 1 : index + 2}`,
+              style: {
+                stroke: focusNodes.has(`bus-${index + 1}`) || focusNodes.has(`bus-${index === 38 ? 1 : index + 2}`)
+                  ? "rgba(96, 165, 250, 0.9)"
+                  : "rgba(71, 85, 105, 0.54)",
+                lineWidth: focusNodes.has(`bus-${index + 1}`) || focusNodes.has(`bus-${index === 38 ? 1 : index + 2}`) ? 2.4 : 1.2,
+              },
+            }));
+            const tieEdges = [
+              [1, 21], [2, 22], [3, 23], [4, 24], [5, 25], [6, 26], [7, 27], [8, 28], [9, 29],
+              [10, 30], [11, 31], [12, 32], [13, 33], [14, 34], [15, 35], [16, 36], [17, 37], [18, 38], [19, 39],
+              [3, 12], [12, 25], [25, 3],
+            ].map(([source, target]) => ({
+              source: `bus-${source}`,
+              target: `bus-${target}`,
+              style: {
+                stroke: focusNodes.has(`bus-${source}`) && focusNodes.has(`bus-${target}`) ? "rgba(251, 191, 36, 0.82)" : "rgba(71, 85, 105, 0.48)",
+                lineWidth: focusNodes.has(`bus-${source}`) && focusNodes.has(`bus-${target}`) ? 2.6 : 1.1,
+                lineDash: focusNodes.has(`bus-${source}`) && focusNodes.has(`bus-${target}`) ? [5, 4] : undefined,
+              },
+            }));
+            const edges = [...ringEdges, ...tieEdges];
+
+            props.deployments.forEach((item, index) => {
+              const baseNode = nodes.find((node) => node.id === `bus-${item.node}`);
+              const vppSlots = [
+                { x: width * 0.22, y: height * 0.76 },
+                { x: width * 0.50, y: height * 0.78 },
+                { x: width * 0.74, y: height * 0.76 },
+              ];
+              const vppSlot = vppSlots[index] || { x: baseNode.x, y: baseNode.y + 92 };
+              const vppX = vppSlot.x;
+              const vppY = Math.min(height - 84, vppSlot.y);
+              nodes.push({
+                id: item.id,
+                label: `${item.id}\n${item.owner}`,
+                x: vppX,
+                y: vppY,
+                type: "rect",
+                size: [116, 44],
+                style: { fill: "rgba(15, 23, 42, 0.96)", stroke: item.color, lineWidth: 2.4, radius: 5 },
+                labelCfg: { style: { fill: "#f8fafc", fontSize: 12, fontWeight: 800 } },
+              });
+              item.units.forEach((unit, unitIndex) => {
+                const unitX = vppX + (unitIndex - (item.units.length - 1) / 2) * 58;
+                const unitY = vppY + 66;
+                nodes.push({
+                  id: `${item.id}-${unit.key}`,
+                  label: unit.label,
+                  x: unitX,
+                  y: unitY,
+                  size: [50, 26],
+                  type: "rect",
+                  style: { fill: unit.color, stroke: "rgba(248, 250, 252, 0.72)", lineWidth: 1.4, radius: 4 },
+                  labelCfg: { style: { fill: "#020617", fontSize: 11, fontWeight: 800 } },
+                });
+                edges.push({
+                  source: item.id,
+                  target: `${item.id}-${unit.key}`,
+                  label: "自治资源",
+                  style: { stroke: item.color, lineWidth: 1.6, lineDash: [4, 4] },
+                });
+              });
+              edges.push({
+                source: `bus-${item.node}`,
+                target: item.id,
+                label: `node ${item.node}`,
+                style: { stroke: item.color, lineWidth: 3 },
+              });
+            });
+
+            graph.value.data({ nodes, edges });
+            graph.value.render();
+          };
+
+          watch(() => props.deployments, () => nextTick(renderGraph), { deep: true });
+          onMounted(() => {
+            nextTick(renderGraph);
+            const requestResize = () => {
+              window.clearTimeout(resizeTimer);
+              resizeTimer = window.setTimeout(renderGraph, 120);
+            };
+            resizeObserver = new ResizeObserver(requestResize);
+            resizeObserver.observe(container.value);
+          });
+          onBeforeUnmount(() => {
+            if (resizeObserver) resizeObserver.disconnect();
+            window.clearTimeout(resizeTimer);
+            if (graph.value) graph.value.destroy();
+          });
+          return { container };
+        },
+      };
+
+      createApp({
+        components: { TopologyGraph },
+        setup() {
+          const selectedDate = ref(MarketUI.selectedDate());
+          const dates = MarketUI.dates();
+          const availableDates = new Set(dates);
+          const charts = {};
+          let chartResizeHandler = null;
+          const vppDeployments = [
+            {
+              id: "VPP1",
+              node: 3,
+              owner: "主体A",
+              resources: "风电 + 储能",
+              color: "#14b8a6",
+              units: [
+                { key: "wind", label: "风电", color: "#14b8a6" },
+                { key: "storage", label: "储能", color: "#fbbf24" },
+              ],
+            },
+            {
+              id: "VPP2",
+              node: 12,
+              owner: "主体B",
+              resources: "光伏 + 储能",
+              color: "#fbbf24",
+              units: [
+                { key: "solar", label: "光伏", color: "#fbbf24" },
+                { key: "storage", label: "储能", color: "#60a5fa" },
+              ],
+            },
+            {
+              id: "VPP3",
+              node: 25,
+              owner: "主体C",
+              resources: "火电 + 光伏 + 储能",
+              color: "#3b82f6",
+              units: [
+                { key: "thermal", label: "火电", color: "#60a5fa" },
+                { key: "solar", label: "光伏", color: "#fbbf24" },
+                { key: "storage", label: "储能", color: "#14b8a6" },
+              ],
+            },
+          ];
+
+          const selectedYear = computed(() => Number(selectedDate.value.slice(0, 4)));
+          const current = computed(() => MarketUI.yearData(selectedYear.value));
+          const vppDeploymentRows = computed(() =>
+            vppDeployments.map((item) => ({
+              id: item.id,
+              node: `node ${item.node}`,
+              resources: item.resources,
+              owner: item.owner,
+            })),
+          );
+          const vppPhysicalParamCatalog = {
+            VPP1: [
+              { parameter: "装机(MW)", value: "100-200 MW" },
+              { parameter: "储能容量(MWh)", value: "10-20 MWh" },
+              { parameter: "最大充放功率(MW)", value: "10-15 MW" },
+            ],
+            VPP2: [
+              { parameter: "装机(MW)", value: "50-100 MW" },
+              { parameter: "储能容量(MWh)", value: "10-15 MWh" },
+              { parameter: "最大充放功率(MW)", value: "10-15 MW" },
+            ],
+            VPP3: [
+              { parameter: "光伏装机(MW)", value: "50-100 MW" },
+              { parameter: "火电装机(MW)", value: "50-70 MW" },
+              { parameter: "储能容量(MWh)", value: "10-15 MWh" },
+              { parameter: "最大充放功率(MW)", value: "15-20 MW" },
+            ],
+          };
+          const vppPhysicalParams = computed(() =>
+            vppDeployments.flatMap((deployment) =>
+              (vppPhysicalParamCatalog[deployment.id] || []).map((item, index, list) => ({
+                id: deployment.id,
+                parameter: item.parameter,
+                value: item.value,
+                rowSpan: index === 0 ? list.length : 0,
+              })),
+            ),
+          );
+          const physicalParamsSpanMethod = ({ row, columnIndex }) => {
+            if (columnIndex === 0) {
+              return {
+                rowspan: row.rowSpan,
+                colspan: row.rowSpan ? 1 : 0,
+              };
+            }
+            return { rowspan: 1, colspan: 1 };
+          };
+
+          const initChart = (id) => {
+            charts[id] = echarts.init(document.getElementById(id), "dark");
+          };
+
+          const formatLocalDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+
+          const disableUnavailableDate = (date) =>
+            !availableDates.has(formatLocalDate(date));
+
+          const updateCharts = () => {
+            const yd = current.value;
+            const daySeries = MarketUI.dailySeries(selectedDate.value);
+            const months = yd.monthly.map((item) => item.month);
+
+            charts.loadRenewableChart.setOption({
+              backgroundColor: "transparent",
+              title: { text: "15分钟出力与电价", left: "center", top: 0, textStyle: { color: "#dbeafe", fontSize: 15 } },
+              tooltip: { trigger: "axis" },
+              legend: { bottom: 0, textStyle: { color: MarketUI.chartText }, data: ["光伏", "风电", "电价"] },
+              grid: { top: 50, left: 56, right: 54, bottom: 50 },
+              xAxis: { type: "category", data: daySeries.map((item) => item.time), axisLabel: { color: MarketUI.chartText, interval: 7 }, axisLine: MarketUI.axisLine },
+              yAxis: [
+                { type: "value", name: "MW", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: MarketUI.dashedGrid },
+                { type: "value", name: "€/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
+              ],
+              series: [
+                { name: "光伏", type: "line", smooth: true, data: daySeries.map((item) => item.solar), itemStyle: { color: MarketUI.colors.yellow }, lineStyle: { width: 3 } },
+                { name: "风电", type: "line", smooth: true, data: daySeries.map((item) => item.wind), itemStyle: { color: MarketUI.colors.teal }, lineStyle: { width: 3 } },
+                { name: "电价", type: "line", yAxisIndex: 1, smooth: true, data: daySeries.map((item) => item.price), itemStyle: { color: MarketUI.colors.pink }, lineStyle: { width: 3 } },
+              ],
+            }, true);
+
+            charts.busRangeChart.setOption({
+              backgroundColor: "transparent",
+              title: { text: "月度新能源出力与均价", left: "center", top: 0, textStyle: { color: "#dbeafe", fontSize: 15 } },
+              tooltip: { trigger: "axis" },
+              legend: { bottom: 0, textStyle: { color: MarketUI.chartText }, data: ["光伏", "风电", "均价"] },
+              grid: { top: 50, left: 58, right: 54, bottom: 52 },
+              xAxis: { type: "category", data: months, axisLabel: { color: MarketUI.chartText }, axisLine: MarketUI.axisLine },
+              yAxis: [
+                { type: "value", name: "MW", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: MarketUI.dashedGrid },
+                { type: "value", name: "€/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
+              ],
+              series: [
+                { name: "光伏", type: "bar", data: yd.monthly.map((item) => item.avgSolar), itemStyle: { color: MarketUI.colors.yellow }, barMaxWidth: 22 },
+                { name: "风电", type: "bar", data: yd.monthly.map((item) => item.avgWind), itemStyle: { color: MarketUI.colors.teal }, barMaxWidth: 22 },
+                { name: "均价", type: "line", yAxisIndex: 1, smooth: true, data: yd.monthly.map((item) => item.avgPrice), itemStyle: { color: MarketUI.colors.pink }, lineStyle: { width: 3 } },
+              ],
+            }, true);
+
+          };
+
+          watch(selectedDate, (date) => {
+            localStorage.setItem("marketSelectedDate", date);
+            localStorage.setItem("marketSelectedYear", String(Number(date.slice(0, 4))));
+            nextTick(updateCharts);
+          });
+
+          onMounted(() => {
+            nextTick(() => {
+              ["loadRenewableChart", "busRangeChart"].forEach(initChart);
+              updateCharts();
+              chartResizeHandler = () => Object.values(charts).forEach((chart) => chart.resize());
+              window.addEventListener("resize", chartResizeHandler);
+            });
+          });
+
+          onBeforeUnmount(() => {
+            window.removeEventListener("resize", chartResizeHandler);
+            Object.values(charts).forEach((chart) => chart.dispose());
+          });
+
+          return {
+            dates,
+            selectedDate,
+            disableUnavailableDate,
+            vppDeployments,
+            vppDeploymentRows,
+            vppPhysicalParams,
+            physicalParamsSpanMethod,
+          };
+        },
+      })
+        .use(ElementPlus)
+        .mount("#app");
+      window.SystemAccess.mountUserPanel("sessionPanel");
+      })().catch((error) => {
+        console.error("Failed to initialize data-management.html", error);
+      });
+    </script>
+  </body>
+</html>
