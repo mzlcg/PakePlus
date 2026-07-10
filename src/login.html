@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>登录 - 虚拟电厂报价平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/system-access.js"></script>
+    <script>
+      window.SystemAccess.redirectAuthenticatedUser();
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap");
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
+        background:
+          radial-gradient(circle at 14% 18%, rgba(56, 189, 248, 0.22), transparent 26%),
+          radial-gradient(circle at 86% 16%, rgba(14, 165, 233, 0.12), transparent 22%),
+          radial-gradient(circle at 50% 100%, rgba(34, 197, 94, 0.08), transparent 28%),
+          linear-gradient(155deg, #020617 0%, #0b1120 46%, #111827 100%);
+        color: #e2e8f0;
+        overflow: hidden;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        box-shadow: 0 28px 72px rgba(2, 6, 23, 0.44);
+      }
+
+      .field-input {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(71, 85, 105, 0.9);
+        background: rgba(2, 6, 23, 0.7);
+        color: #f8fafc;
+        font-size: 15px;
+        padding: 14px 16px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .field-input:focus {
+        border-color: rgba(56, 189, 248, 0.9);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+      }
+
+      .login-button {
+        background:
+          linear-gradient(135deg, #7dd3fc 0%, #38bdf8 48%, #0ea5e9 100%);
+        box-shadow: 0 18px 30px rgba(14, 165, 233, 0.24);
+      }
+
+      .login-button:hover {
+        filter: brightness(1.04);
+      }
+
+      @media (max-width: 1024px) {
+        body {
+          overflow: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="mx-auto flex min-h-screen max-w-md items-center px-6 py-10">
+      <section class="glass-card w-full rounded-[32px] p-7 sm:p-8 lg:p-10">
+        <div class="text-center">
+          <h1 class="text-3xl font-bold tracking-tight text-white">
+            虚拟电厂报价平台
+          </h1>
+        </div>
+
+        <form class="mt-8 space-y-5" id="loginForm">
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-300" for="username">
+              账号
+            </label>
+            <input class="field-input" id="username" name="username" placeholder="请输入账号，例如 user 或 root" type="text" />
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-300" for="password">
+              密码
+            </label>
+            <input class="field-input" id="password" name="password" placeholder="请输入密码" type="password" />
+          </div>
+          <div class="hidden rounded-2xl border px-4 py-3 text-sm" id="loginMessage"></div>
+          <button
+            class="login-button inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-base font-semibold text-slate-950 transition"
+            type="submit"
+          >
+            进入系统
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("loginForm");
+      const message = document.getElementById("loginMessage");
+      const usernameInput = document.getElementById("username");
+      const passwordInput = document.getElementById("password");
+
+      const setMessage = (text, type) => {
+        message.className =
+          "rounded-2xl border px-4 py-3 text-sm " +
+          (type === "error"
+            ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+            : "border-emerald-500/40 bg-emerald-500/10 text-emerald-200");
+        message.textContent = text;
+        message.classList.remove("hidden");
+      };
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        message.classList.add("hidden");
+
+        const result = window.SystemAccess.login(
+          usernameInput.value,
+          passwordInput.value
+        );
+
+        if (!result.ok) {
+          setMessage(result.message, "error");
+          return;
+        }
+
+        setMessage("登录成功，正在进入系统。", "success");
+        window.location.href = window.SystemAccess.getRedirectTarget();
+      });
+    </script>
+  </body>
+</html>
