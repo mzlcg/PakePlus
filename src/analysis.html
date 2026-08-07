@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>仿真结果分析 - GridPulse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="assets/system-access.js"></script>
+    <script>
+      window.SystemAccess.requireAuth("analysis.html");
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #020617;
+        color: #f8fafc;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+      }
+
+      .sidebar-item-active {
+        background: linear-gradient(
+          90deg,
+          rgba(59, 130, 246, 0.2) 0%,
+          rgba(59, 130, 246, 0) 100%
+        );
+        border-left: 4px solid #3b82f6;
+      }
+
+      .data-section {
+        border: 1px solid rgba(59, 130, 246, 0.18);
+        background: rgba(15, 23, 42, 0.68);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .section-title {
+        background: rgba(37, 99, 155, 0.28);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.14);
+      }
+
+      .chart-card {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .page-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .page-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .analysis-filter-section {
+        position: static;
+        box-shadow: none;
+      }
+
+      .metric-card {
+        min-height: 138px;
+      }
+
+      .chart-host {
+        height: 420px;
+        width: 100%;
+      }
+
+      .training-chart-host {
+        height: 300px;
+        width: 100%;
+      }
+
+      .detail-list dt {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .detail-list dd {
+        color: #e2e8f0;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+
+      .summary-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+
+      .summary-item {
+        border: 1px solid rgba(51, 65, 85, 0.8);
+        border-radius: 10px;
+        background: rgba(2, 6, 23, 0.42);
+        padding: 14px 16px;
+      }
+
+      .summary-item dt {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .summary-item dd {
+        color: #f8fafc;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      @media (min-width: 768px) {
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 1280px) {
+        .summary-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .analysis-date-control {
+        width: 100%;
+      }
+
+      .analysis-date-control .el-input__wrapper {
+        background: rgba(15, 23, 42, 0.92);
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(71, 85, 105, 1) inset;
+        min-height: 34px;
+        padding: 0 12px;
+      }
+
+      .analysis-date-control .el-input__wrapper:hover {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.75) inset;
+      }
+
+      .analysis-date-control.is-focus .el-input__wrapper,
+      .analysis-date-control .el-input__wrapper.is-focus {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 1) inset;
+      }
+
+      .analysis-date-control .el-input__inner {
+        color: #e2e8f0;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .analysis-date-control .el-input__suffix-inner,
+      .analysis-date-control .el-input__prefix-inner {
+        color: #94a3b8;
+      }
+
+      .analysis-select-control {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .analysis-select-control .el-select__wrapper {
+        min-height: 34px !important;
+        height: 34px !important;
+        background: rgba(15, 23, 42, 0.92) !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45) inset !important;
+        padding: 0 36px 0 12px !important;
+      }
+
+      .analysis-select-control:hover .el-select__wrapper {
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7) inset !important;
+      }
+
+      .analysis-select-control.is-focused .el-select__wrapper,
+      .analysis-select-control .el-select__wrapper.is-focused {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.95) inset !important;
+      }
+
+      .analysis-select-control .el-select__selected-item,
+      .analysis-select-control .el-select__placeholder,
+      .analysis-select-control .el-select__input-wrapper {
+        color: #e2e8f0 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+      }
+
+      .analysis-select-control .el-select__placeholder.is-transparent {
+        color: #94a3b8 !important;
+      }
+
+      .analysis-select-control .el-select__caret,
+      .analysis-select-control .el-icon {
+        color: #94a3b8 !important;
+      }
+
+      .analysis-date-popper {
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.95);
+        box-shadow: 0 18px 48px rgba(2, 6, 23, 0.56);
+        background: #0f172a !important;
+      }
+
+      .analysis-date-popper.el-popper,
+      .analysis-date-popper.el-picker__popper {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .analysis-date-popper .el-popper__arrow::before,
+      .analysis-date-popper.el-popper .el-popper__arrow::before,
+      .analysis-date-popper.el-picker__popper .el-popper__arrow::before {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .analysis-date-popper .el-picker-panel__body,
+      .analysis-date-popper .el-date-picker__header,
+      .analysis-date-popper .el-date-picker__header-label,
+      .analysis-date-popper .el-date-table th,
+      .analysis-date-popper .el-date-table td,
+      .analysis-date-popper .el-date-table-cell,
+      .analysis-date-popper .el-date-table-cell__text {
+        color: #dbeafe !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+
+      .analysis-date-popper .el-picker-panel,
+      .analysis-date-popper .el-date-picker,
+      .analysis-date-popper .el-picker-panel__content,
+      .analysis-date-popper .el-picker-panel__footer {
+        background: #0f172a !important;
+        color: #dbeafe !important;
+      }
+
+      .analysis-date-popper .el-date-picker__header-label:hover,
+      .analysis-date-popper .el-picker-panel__icon-btn:hover {
+        color: #60a5fa !important;
+      }
+
+      .analysis-date-popper .el-picker-panel__icon-btn,
+      .analysis-date-popper .el-date-picker__prev-btn,
+      .analysis-date-popper .el-date-picker__next-btn {
+        color: #f8fafc !important;
+      }
+
+      .analysis-date-popper .el-date-table th {
+        border-bottom-color: rgba(51, 65, 85, 0.9) !important;
+      }
+
+      .analysis-date-popper .el-date-table td {
+        height: 38px;
+        padding: 2px 0;
+      }
+
+      .analysis-date-popper .el-date-table-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 34px;
+      }
+
+      .analysis-date-popper .el-date-table-cell__text {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .analysis-date-popper .el-date-table td.available:hover .el-date-table-cell__text,
+      .analysis-date-popper .el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+        color: #f8fafc !important;
+      }
+
+      .analysis-date-popper .el-date-table td.disabled .el-date-table-cell__text,
+      .analysis-date-popper .el-date-table td.prev-month .el-date-table-cell__text,
+      .analysis-date-popper .el-date-table td.next-month .el-date-table-cell__text {
+        color: #475569 !important;
+      }
+
+      .analysis-date-popper .el-date-table td.today .el-date-table-cell__text {
+        color: #60a5fa !important;
+      }
+
+      .analysis-date-popper .el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+        background: #2563eb !important;
+      }
+
+      .analysis-select-popper {
+        border-radius: 4px;
+        border: 1px solid rgba(51, 65, 85, 0.95) !important;
+        background: #0f172a !important;
+        box-shadow: 0 18px 48px rgba(2, 6, 23, 0.56) !important;
+      }
+
+      .analysis-select-popper .el-select-dropdown__item {
+        color: #dbeafe !important;
+      }
+
+      .analysis-select-popper .el-select-dropdown__item.hover,
+      .analysis-select-popper .el-select-dropdown__item:hover {
+        background: rgba(37, 99, 235, 0.18) !important;
+      }
+
+      .analysis-select-popper .el-select-dropdown__item.selected {
+        color: #60a5fa !important;
+        font-weight: 700;
+      }
+
+      @media (max-width: 1279px) {
+        body {
+          overflow: auto;
+        }
+        .page-main {
+          overflow-y: auto;
+        }
+        .page-content {
+          overflow: visible;
+        }
+        .analysis-filter-section {
+          position: static;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex h-screen overflow-hidden">
+    <aside class="w-64 glass-panel flex flex-col h-full z-50">
+      <div class="h-16 px-4 flex items-center">
+        <img
+          src="assets/title.png"
+          alt="虚拟电厂报价平台"
+          class="block h-10 w-auto max-w-full object-contain"
+        />
+      </div>
+      <nav class="flex-1 mt-4 px-4 space-y-2">
+        <a
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="index.html"
+        >
+          <span class="iconify" data-icon="mdi:view-dashboard"></span>
+          系统总览
+        </a>
+        <a
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="data-management.html"
+        >
+          <span class="iconify" data-icon="mdi:database-cog"></span>
+          基础数据管理
+        </a>
+        <a
+          data-requires-role="admin"
+          class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
+          href="algorithm-config.html"
+        >
+          <span class="iconify" data-icon="mdi:brain"></span> 策略算法配置
+        </a>
+        <a
+          class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg text-blue-400"
+          href="analysis.html"
+        >
+          <span class="iconify" data-icon="mdi:chart-box"></span> 仿真结果分析
+        </a>
+      </nav>
+    </aside>
+
+    <main class="page-main">
+      <header
+        class="h-16 glass-panel sticky top-0 z-40 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-8"
+      >
+        <h2 class="min-w-0 truncate text-lg font-bold tracking-tight text-slate-50">
+          国家能源集团科学技术研究院有限公司
+        </h2>
+        <div class="text-xl font-semibold tracking-tight text-slate-100">
+          电力系统报价平台
+        </div>
+        <div class="justify-self-end" id="sessionPanel"></div>
+        <!-- <div class="text-sm text-slate-400">
+          Excel 日切片结果驱动的 VPP 投标与储能运行分析
+        </div> -->
+      </header>
+
+      <div class="page-content p-4 xl:p-5 space-y-4" id="analysisApp">
+        <section class="data-section analysis-filter-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+              分析条件
+            </h3>
+            <p class="hidden xl:block text-sm text-slate-400">
+              <!-- 复刻 part4 可视化中的 VPP1 / VPP2 / VPP3 日切片 Python 逻辑 -->
+            </p>
+          </div>
+          <div class="p-4 grid grid-cols-12 gap-4">
+            <div class="col-span-12 xl:col-span-5">
+              <article class="chart-card px-5 py-4 h-full">
+                <div
+                  class="text-xs font-semibold uppercase tracking-[0.14em] text-blue-400"
+                >
+                  仿真结果分析
+                </div>
+                <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-50">
+                  虚拟电厂投标与储能运行可视化
+                </h1>
+                <p class="mt-2 text-sm leading-6 text-slate-400">
+                  <!-- 按日期、区间和 VPP 对象切换，保持原 Python 日切片的取数口径与图表功能。 -->
+                </p>
+              </article>
+            </div>
+
+            <div
+              class="col-span-12 xl:col-span-7 grid gap-4 md:grid-cols-3"
+              id="analysisControlApp"
+            >
+              <div class="chart-card flex flex-col gap-2 px-4 py-3">
+                <span class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">日期</span>
+                <el-date-picker
+                  v-model="selectedDate"
+                  type="date"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  :clearable="false"
+                  :editable="false"
+                  :disabled-date="disableDate"
+                  popper-class="analysis-date-popper"
+                  class="analysis-date-control"
+                  @change="onDateChange"
+                />
+              </div>
+
+              <div class="chart-card px-4 py-3">
+                <div class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">区间</div>
+                <div class="mt-2 flex rounded-md bg-slate-950 p-1">
+                  <button
+                    type="button"
+                    :class="horizonButtonClass(1)"
+                    @click="setHorizon(1)"
+                  >
+                    1天
+                  </button>
+                  <button
+                    type="button"
+                    :class="horizonButtonClass(3)"
+                    @click="setHorizon(3)"
+                  >
+                    3天
+                  </button>
+                </div>
+              </div>
+
+              <div class="chart-card flex flex-col gap-2 px-4 py-3">
+                <span class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">VPP</span>
+                <el-select
+                  v-model="selectedVpp"
+                  class="analysis-select-control"
+                  popper-class="analysis-select-popper"
+                  @change="onVppChange"
+                >
+                  <el-option
+                    v-for="item in vppOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              指标概览
+            </h3>
+            <p class="hidden xl:block text-sm text-slate-400">
+              当前区间的收益、偏差、储能功率和 SOC 汇总
+            </p>
+          </div>
+          <div class="p-4 grid grid-cols-12 gap-4">
+            <article class="col-span-12 md:col-span-6 2xl:col-span-3 chart-card metric-card px-5 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-sm font-medium text-slate-400">区间总收益</div>
+                  <div class="mt-3 text-3xl font-bold tracking-tight text-slate-50" id="kpiRevenue">--</div>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+                  <span class="iconify text-2xl" data-icon="mdi:currency-cny"></span>
+                </div>
+              </div>
+              <p class="mt-4 text-sm leading-6 text-slate-400" id="kpiRevenueNote">--</p>
+            </article>
+
+            <article class="col-span-12 md:col-span-6 2xl:col-span-3 chart-card metric-card px-5 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-sm font-medium text-slate-400">平均投标偏差</div>
+                  <div class="mt-3 text-3xl font-bold tracking-tight text-slate-50" id="kpiDeviation">--</div>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-700/45 text-slate-200">
+                  <span class="iconify text-2xl" data-icon="mdi:chart-timeline-variant"></span>
+                </div>
+              </div>
+              <p class="mt-4 text-sm leading-6 text-slate-400" id="kpiDeviationNote">--</p>
+            </article>
+
+            <article class="col-span-12 md:col-span-6 2xl:col-span-3 chart-card metric-card px-5 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-sm font-medium text-slate-400">最大储能功率</div>
+                  <div class="mt-3 text-3xl font-bold tracking-tight text-slate-50" id="kpiPower">--</div>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-500/15 text-sky-400">
+                  <span class="iconify text-2xl" data-icon="mdi:battery-charging-high"></span>
+                </div>
+              </div>
+              <p class="mt-4 text-sm leading-6 text-slate-400" id="kpiPowerNote">--</p>
+            </article>
+
+            <article class="col-span-12 md:col-span-6 2xl:col-span-3 chart-card metric-card px-5 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-sm font-medium text-slate-400">SOC 区间</div>
+                  <div class="mt-3 text-3xl font-bold tracking-tight text-slate-50" id="kpiSoc">--</div>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-500/15 text-violet-400">
+                  <span class="iconify text-2xl" data-icon="mdi:battery-heart-variant"></span>
+                </div>
+              </div>
+              <p class="mt-4 text-sm leading-6 text-slate-400" id="kpiSocNote">--</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+              运行视图
+            </h3>
+            <div
+              class="flex flex-wrap gap-2 rounded-md bg-slate-950 p-1.5"
+              id="analysisTabApp"
+            >
+              <button
+                type="button"
+                :class="tabButtonClass('bid')"
+                @click="setTab('bid')"
+              >
+                投标情况
+              </button>
+              <button
+                type="button"
+                :class="tabButtonClass('storage')"
+                @click="setTab('storage')"
+              >
+                储能运行
+              </button>
+              <button
+                type="button"
+                :class="tabButtonClass('revenue')"
+                @click="setTab('revenue')"
+              >
+                收益辅助
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 space-y-4">
+            <article class="chart-card">
+              <div class="px-4 py-4">
+                <div class="chart-host" id="analysisPrimaryChart"></div>
+              </div>
+            </article>
+
+            <div class="grid grid-cols-12 gap-4">
+              <article class="col-span-12 xl:col-span-12 chart-card px-5 py-5">
+                <div class="flex flex-col gap-2 border-b border-slate-700/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 class="text-base font-semibold text-slate-50">VPP 类型</h3>
+                    <p class="text-sm leading-6 text-slate-400">
+                      汇总当前分析对象的资源组成、日期范围与数据覆盖情况。
+                    </p>
+                  </div>
+                </div>
+                <dl class="summary-grid mt-4">
+                  <div class="summary-item">
+                    <dt>当前对象</dt>
+                    <dd id="vppTypeValue">--</dd>
+                  </div>
+                  <div class="summary-item">
+                    <dt>资源构成</dt>
+                    <dd id="vppSourceValue">--</dd>
+                  </div>
+                  <div class="summary-item">
+                    <dt>日期范围</dt>
+                    <dd id="vppRangeValue">--</dd>
+                  </div>
+                  <div class="summary-item">
+                    <dt>数据粒度</dt>
+                    <dd id="vppGranularityValue">--</dd>
+                  </div>
+                  <div class="summary-item">
+                    <dt>覆盖率</dt>
+                    <dd id="vppCoverageValue">--</dd>
+                  </div>
+                  <!-- <div>
+                    <dt>字段</dt>
+                    <dd id="vppColumnsValue">--</dd>
+                  </div>
+                  <div>
+                    <dt>源文件</dt>
+                    <dd id="vppFilesValue">--</dd>
+                  </div> -->
+                </dl>
+              </article>
+
+            </div>
+          </div>
+        </section>
+
+        <section class="data-section">
+          <div
+            class="section-title px-4 py-2.5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"
+          >
+            <h3 class="font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              训练曲线分析
+            </h3>
+            <p class="hidden xl:block text-sm text-slate-400">
+              <!-- 基于原始 SVG 训练结果重绘奖励、MAE 与 MBE 收敛曲线 -->
+            </p>
+          </div>
+
+          <div class="p-4 space-y-4">
+            <div class="grid grid-cols-12 gap-4">
+              <article class="col-span-12 xl:col-span-4 chart-card">
+                <div class="border-b border-slate-700/70 px-4 py-4">
+                  <h3 class="text-lg font-semibold text-slate-50">奖励训练曲线</h3>
+                  <p class="mt-1 text-sm leading-6 text-slate-400">
+                    对比三类 VPP 策略在训练阶段的收益收敛速度与稳定性。
+                  </p>
+                </div>
+                <div class="px-4 py-4">
+                  <div class="training-chart-host" id="trainingRewardChart"></div>
+                </div>
+              </article>
+
+              <article class="col-span-12 xl:col-span-4 chart-card">
+                <div class="border-b border-slate-700/70 px-4 py-4">
+                  <h3 class="text-lg font-semibold text-slate-50">MAE 训练曲线</h3>
+                  <p class="mt-1 text-sm leading-6 text-slate-400">
+                    衡量日前报量对新能源真实出力的跟踪精度，曲线越低越好。
+                  </p>
+                </div>
+                <div class="px-4 py-4">
+                  <div class="training-chart-host" id="trainingMaeChart"></div>
+                </div>
+              </article>
+
+              <article class="col-span-12 xl:col-span-4 chart-card">
+                <div class="border-b border-slate-700/70 px-4 py-4">
+                  <h3 class="text-lg font-semibold text-slate-50">MBE 训练曲线</h3>
+                  <p class="mt-1 text-sm leading-6 text-slate-400">
+                    反映实时调度执行与日前申报之间的偏差水平，曲线越低越稳。
+                  </p>
+                </div>
+                <div class="px-4 py-4">
+                  <div class="training-chart-host" id="trainingMbeChart"></div>
+                </div>
+              </article>
+            </div>
+
+            <div class="grid grid-cols-12 gap-4">
+              <article class="col-span-12 xl:col-span-6 chart-card px-5 py-5">
+                <h3 class="text-base font-semibold text-slate-50">MAE 指标解析</h3>
+                <p class="mt-4 text-sm leading-7 text-slate-300">
+                  MAE 用于衡量日前申报出力和机组真实出力之间的平均偏差，能够量化报量策略跟踪新能源实际出力的精准程度。
+                </p>
+                <p class="mt-3 text-sm leading-7 text-slate-400">
+                  MAE 数值越小，代表日前报量越贴近机组真实发电水平，预测与报量精度越高，新能源出力跟踪能力越强。
+                </p>
+              </article>
+
+              <article class="col-span-12 xl:col-span-6 chart-card px-5 py-5">
+                <h3 class="text-base font-semibold text-slate-50">MBE 指标解析</h3>
+                <p class="mt-4 text-sm leading-7 text-slate-300">
+                  MBE 用于衡量实时调度执行出力与日前申报出力之间的平均绝对偏差，直接反映因报量与实际调度不一致而产生的偏差惩罚成本。
+                </p>
+                <p class="mt-3 text-sm leading-7 text-slate-400">
+                  MBE 越大，代表日前报量与实际运行偏差越大，需要承担的市场考核和偏差罚金越高，因此训练目标是让该指标尽快收敛并维持在低位。
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="assets/analysis-visualization.js"></script>
+    <script src="assets/analysis-training-curves.js"></script>
+    <script>
+      (async () => {
+        const visualData = await window.SystemAccess.loadDataAsset({
+          jsonPath: "assets/visual-data.json",
+          scriptPath: "assets/visual-data.js",
+          globalKey: "VPP_VISUAL_DATA",
+        });
+        window.AnalysisVisualization =
+          window.createAnalysisVisualization(visualData);
+
+        window.SystemAccess.mountUserPanel("sessionPanel");
+        const { createApp, reactive } = Vue;
+        const analysis = window.AnalysisVisualization;
+        if (!analysis) return;
+
+        const formatDate = (value) => {
+          const year = value.getFullYear();
+          const month = String(value.getMonth() + 1).padStart(2, "0");
+          const day = String(value.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        const initial = analysis.getInitialState();
+        const uiState = reactive({
+          selectedDate: initial.date,
+          selectedVpp: initial.selectedVpp,
+          selectedTab: initial.tab,
+          selectedHorizon: initial.horizon,
+          selectableDates: analysis.getSelectableDates(
+            initial.selectedVpp,
+            initial.horizon,
+          ),
+          vppOptions: analysis.getVppOptions(),
+        });
+
+        const applyRender = (next = {}) => {
+          const result = analysis.render({
+            selectedVpp: next.selectedVpp ?? uiState.selectedVpp,
+            date: next.date ?? uiState.selectedDate,
+            tab: next.tab ?? uiState.selectedTab,
+            horizon: next.horizon ?? uiState.selectedHorizon,
+          });
+          uiState.selectedDate = result.date;
+          uiState.selectedVpp = result.selectedVpp;
+          uiState.selectedTab = result.tab;
+          uiState.selectedHorizon = result.horizon;
+          uiState.selectableDates = result.selectableDates;
+          uiState.vppOptions = result.vppOptions;
+        };
+
+        const sharedMethods = {
+          applyRender,
+          onDateChange(value) {
+            if (!value) return;
+            applyRender({ date: value });
+          },
+          onVppChange(value) {
+            if (!value) return;
+            applyRender({ selectedVpp: value });
+          },
+          setHorizon(value) {
+            if (uiState.selectedHorizon === value) return;
+            applyRender({ horizon: value });
+          },
+          setTab(value) {
+            if (uiState.selectedTab === value) return;
+            applyRender({ tab: value });
+          },
+          disableDate(value) {
+            if (!uiState.selectableDates.length) return false;
+            return !new Set(uiState.selectableDates).has(formatDate(value));
+          },
+          horizonButtonClass(value) {
+            return uiState.selectedHorizon === value
+              ? "flex-1 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition"
+              : "flex-1 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100";
+          },
+          tabButtonClass(value) {
+            return uiState.selectedTab === value
+              ? "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition"
+              : "rounded-xl px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100";
+          },
+        };
+
+        createApp({
+          data() {
+            return uiState;
+          },
+          mounted() {
+            applyRender();
+          },
+          methods: {
+            ...sharedMethods,
+          },
+        })
+          .use(ElementPlus)
+          .mount("#analysisControlApp");
+
+        createApp({
+          data() {
+            return uiState;
+          },
+          methods: {
+            ...sharedMethods,
+          },
+        })
+          .use(ElementPlus)
+          .mount("#analysisTabApp");
+      })().catch((error) => {
+        console.error("Failed to initialize analysis.html", error);
+      });
+    </script>
+  </body>
+</html>
