@@ -21,6 +21,10 @@
     </script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+      html,
+      body {
+        min-height: 100%;
+      }
       body {
         font-family: "Inter", sans-serif;
         background-color: #020617;
@@ -28,10 +32,21 @@
         margin: 0;
         overflow: hidden;
       }
+      #app {
+        height: 100vh;
+        overflow-x: hidden;
+      }
       .glass-panel {
         background: rgba(30, 41, 59, 0.7);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 16rem;
+        height: 100vh;
       }
       .sidebar-item-active {
         background: linear-gradient(
@@ -60,24 +75,31 @@
         border-radius: 6px;
       }
       .page-main {
-        flex: 1;
         display: flex;
         flex-direction: column;
-        min-height: 0;
+        height: 100vh;
         overflow: hidden;
+        margin-left: 16rem;
+        width: calc(100% - 16rem);
+      }
+      .page-header {
+        flex: 0 0 4rem;
       }
       .page-content {
         flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
       .data-section-primary {
-        flex: 1.18 1 0;
+        flex: 0 0 auto;
+        min-height: 760px;
       }
       .data-section-secondary {
-        flex: 0.82 1 0;
+        flex: 0 0 auto;
+        min-height: 360px;
       }
       .section-body {
         flex: 1;
@@ -156,6 +178,39 @@
         text-align: center;
         white-space: nowrap;
       }
+      .vpp-section-grid {
+        height: auto;
+        grid-template-rows: auto minmax(420px, 1fr);
+        align-items: start;
+      }
+      .vpp-summary-card,
+      .vpp-summary-shell {
+        min-height: 0;
+      }
+      .vpp-summary-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .vpp-summary-shell {
+        flex: 0 0 auto;
+      }
+      .vpp-summary-table {
+        height: auto;
+      }
+      .vpp-summary-table .el-table__body td.el-table__cell {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+      .vpp-summary-table .cell {
+        white-space: normal;
+        line-height: 1.35;
+      }
+      .topology-card {
+        min-height: 420px;
+      }
+      .topology-graph {
+        min-height: 372px;
+      }
       .dark-data-table .el-scrollbar__bar.is-horizontal > div,
       .dark-data-table .el-scrollbar__bar.is-vertical > div {
         background-color: rgba(96, 165, 250, 0.7);
@@ -187,38 +242,57 @@
         #app {
           min-height: 100vh;
           height: auto;
+          overflow: visible;
+        }
+        .app-sidebar {
+          position: static;
+          width: auto;
+          height: auto;
         }
         .page-main {
-          overflow-y: auto;
+          min-height: auto;
+          height: auto;
+          overflow: visible;
+          margin-left: 0;
+          width: 100%;
+        }
+        .page-header {
+          flex: 0 0 auto;
         }
         .page-content {
           overflow: visible;
+          min-height: auto;
         }
         .data-section-primary,
         .data-section-secondary {
           flex: 0 0 auto;
+          min-height: auto;
+        }
+        .vpp-section-grid {
+          height: auto;
+          grid-template-rows: none;
         }
         .topology-graph,
         .chart-canvas {
           min-height: 220px;
         }
+        .topology-card,
+        .vpp-summary-card {
+          min-height: 0;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="app" class="flex h-screen overflow-hidden">
+    <div id="app" class="min-h-screen overflow-x-hidden">
       <!-- 侧边导航 -->
-      <aside class="w-64 glass-panel flex flex-col h-full z-50">
-        <div class="p-6 flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50"
-          >
-            <span
-              class="iconify text-2xl"
-              data-icon="mdi:transmission-tower"
-            ></span>
-          </div>
-          <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
+      <aside class="app-sidebar glass-panel flex flex-col z-50">
+        <div class="h-16 px-4 flex items-center">
+          <img
+            src="assets/title.png"
+            alt="虚拟电厂报价平台"
+            class="block h-10 w-auto max-w-full object-contain"
+          />
         </div>
         <nav class="flex-1 mt-4 px-4 space-y-2">
           <a
@@ -236,6 +310,7 @@
             基础数据管理
           </a>
           <a
+            data-requires-role="admin"
             class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 transition-all"
             href="algorithm-config.html"
           >
@@ -251,16 +326,15 @@
       </aside>
       <main class="page-main">
         <header
-          class="h-16 glass-panel flex items-center justify-between px-8 sticky top-0 z-40"
+          class="page-header h-16 glass-panel grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-8 z-40"
         >
-          <h2 class="text-xl font-bold flex items-center gap-2">
-            <span
-              class="iconify text-blue-500"
-              data-icon="mdi:server-network"
-            ></span>
-            基础数据管理
+          <h2 class="min-w-0 truncate text-lg font-bold tracking-tight text-slate-50">
+            国家能源集团科学技术研究院有限公司
           </h2>
-          <div class="flex items-center gap-4">
+          <div class="text-xl font-semibold tracking-tight text-slate-100">
+            电力系统报价平台
+          </div>
+          <div class="flex items-center justify-self-end gap-4">
             <div class="text-sm text-slate-400">CSV 出力/电价与 VPP 参数接入</div>
             <el-date-picker
               v-model="selectedDate"
@@ -310,82 +384,66 @@
                 基于 pandapower IEEE 39 节点网络 - 展示 VPP 接入节点与自治主体
               </p>
             </div>
-            <div class="section-body topology-layout p-3 grid grid-cols-12 gap-3">
-              <div
-                class="col-span-12 xl:col-span-9 chart-card topology-card p-2.5"
-              >
+            <div class="section-body topology-layout vpp-section-grid p-3 grid grid-cols-12 gap-3">
+              <div class="col-span-12 chart-card vpp-summary-card overflow-hidden">
+                <h4 class="px-3 py-2 text-sm font-bold text-blue-100">
+                  VPP 部署、主体与物理参数一体化表
+                </h4>
+                <div class="vpp-summary-shell px-2.5 pb-2.5">
+                  <el-table
+                    class="dark-data-table vpp-summary-table"
+                    :data="vppIntegratedRows"
+                    border
+                    size="small"
+                  >
+                    <el-table-column
+                      prop="id"
+                      label="VPP"
+                      min-width="76"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="node"
+                      label="接入节点"
+                      min-width="92"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="resources"
+                      label="资源组合"
+                      min-width="150"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="owner"
+                      label="主体"
+                      min-width="88"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="installedCapacity"
+                      label="装机规模"
+                      min-width="180"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="storageCapacity"
+                      label="储能容量"
+                      min-width="132"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="maxChargeDischarge"
+                      label="最大充放功率"
+                      min-width="138"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="remarks"
+                      label="参数说明"
+                      min-width="180"
+                    ></el-table-column>
+                  </el-table>
+                  </div>
+              </div>
+              <div class="col-span-12 chart-card topology-card p-2.5">
                 <h4 class="text-center text-base font-bold text-blue-100">
                   IEEE 39 节点 VPP 部署拓扑
                 </h4>
                 <topology-graph :deployments="vppDeployments"></topology-graph>
-              </div>
-              <div class="col-span-12 xl:col-span-3 info-column gap-2 h-full">
-                <div class="chart-card info-card overflow-hidden">
-                  <h4 class="px-3 py-2 text-sm font-bold text-blue-100">
-                    VPP 部署与主体
-                  </h4>
-                  <div class="table-shell px-2.5 pb-2.5">
-                    <el-table
-                      class="dark-data-table"
-                      :data="vppDeploymentRows"
-                      border
-                      size="small"
-                      height="100%"
-                    >
-                      <el-table-column
-                        prop="id"
-                        label="VPP"
-                        min-width="76"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="node"
-                        label="接入节点"
-                        min-width="92"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="resources"
-                        label="资源组合"
-                        min-width="132"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="owner"
-                        label="主体"
-                        min-width="86"
-                      ></el-table-column>
-                    </el-table>
-                  </div>
-                </div>
-                <div class="chart-card info-card overflow-hidden">
-                  <h4 class="px-3 py-2 text-sm font-bold text-blue-100">
-                    物理参数
-                  </h4>
-                  <div class="table-shell px-2.5 pb-2.5">
-                    <el-table
-                      class="dark-data-table"
-                      :data="vppPhysicalParams"
-                      :span-method="physicalParamsSpanMethod"
-                      border
-                      size="small"
-                      height="100%"
-                    >
-                      <el-table-column
-                        prop="id"
-                        label="VPP"
-                        min-width="76"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="parameter"
-                        label="参数"
-                        min-width="118"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="value"
-                        label="数值"
-                        min-width="116"
-                      ></el-table-column>
-                    </el-table>
-                  </div>
-                </div>
               </div>
             </div>
           </section>
@@ -642,14 +700,6 @@
 
           const selectedYear = computed(() => Number(selectedDate.value.slice(0, 4)));
           const current = computed(() => MarketUI.yearData(selectedYear.value));
-          const vppDeploymentRows = computed(() =>
-            vppDeployments.map((item) => ({
-              id: item.id,
-              node: `node ${item.node}`,
-              resources: item.resources,
-              owner: item.owner,
-            })),
-          );
           const vppPhysicalParamCatalog = {
             VPP1: [
               { parameter: "装机(MW)", value: "100-200 MW" },
@@ -668,25 +718,37 @@
               { parameter: "最大充放功率(MW)", value: "15-20 MW" },
             ],
           };
-          const vppPhysicalParams = computed(() =>
-            vppDeployments.flatMap((deployment) =>
-              (vppPhysicalParamCatalog[deployment.id] || []).map((item, index, list) => ({
-                id: deployment.id,
-                parameter: item.parameter,
-                value: item.value,
-                rowSpan: index === 0 ? list.length : 0,
-              })),
-            ),
-          );
-          const physicalParamsSpanMethod = ({ row, columnIndex }) => {
-            if (columnIndex === 0) {
+          const vppIntegratedRows = computed(() =>
+            vppDeployments.map((deployment) => {
+              const params = vppPhysicalParamCatalog[deployment.id] || [];
+              const installedCapacity = params
+                .filter((item) => item.parameter.includes("装机"))
+                .map((item) =>
+                  item.parameter === "装机(MW)"
+                    ? item.value
+                    : `${item.parameter.replace("(MW)", "")}${item.value}`,
+                )
+                .join(" / ");
+              const storageCapacity =
+                params.find((item) => item.parameter.includes("储能容量"))?.value || "--";
+              const maxChargeDischarge =
+                params.find((item) => item.parameter.includes("最大充放功率"))?.value || "--";
+
               return {
-                rowspan: row.rowSpan,
-                colspan: row.rowSpan ? 1 : 0,
+                id: deployment.id,
+                node: `node ${deployment.node}`,
+                resources: deployment.resources,
+                owner: deployment.owner,
+                installedCapacity: installedCapacity || "--",
+                storageCapacity,
+                maxChargeDischarge,
+                remarks:
+                  deployment.units.length > 2
+                    ? "多资源协同调节"
+                    : "新能源+储能联合运行",
               };
-            }
-            return { rowspan: 1, colspan: 1 };
-          };
+            }),
+          );
 
           const initChart = (id) => {
             charts[id] = echarts.init(document.getElementById(id), "dark");
@@ -716,7 +778,7 @@
               xAxis: { type: "category", data: daySeries.map((item) => item.time), axisLabel: { color: MarketUI.chartText, interval: 7 }, axisLine: MarketUI.axisLine },
               yAxis: [
                 { type: "value", name: "MW", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: MarketUI.dashedGrid },
-                { type: "value", name: "€/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
+                { type: "value", name: "元/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
               ],
               series: [
                 { name: "光伏", type: "line", smooth: true, data: daySeries.map((item) => item.solar), itemStyle: { color: MarketUI.colors.yellow }, lineStyle: { width: 3 } },
@@ -734,7 +796,7 @@
               xAxis: { type: "category", data: months, axisLabel: { color: MarketUI.chartText }, axisLine: MarketUI.axisLine },
               yAxis: [
                 { type: "value", name: "MW", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: MarketUI.dashedGrid },
-                { type: "value", name: "€/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
+                { type: "value", name: "元/MWh", nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 }, axisLabel: { color: MarketUI.chartText }, splitLine: { show: false } },
               ],
               series: [
                 { name: "光伏", type: "bar", data: yd.monthly.map((item) => item.avgSolar), itemStyle: { color: MarketUI.colors.yellow }, barMaxWidth: 22 },
@@ -770,9 +832,7 @@
             selectedDate,
             disableUnavailableDate,
             vppDeployments,
-            vppDeploymentRows,
-            vppPhysicalParams,
-            physicalParamsSpanMethod,
+            vppIntegratedRows,
           };
         },
       })
