@@ -26,6 +26,10 @@
     },
   ];
 
+  const PAGE_ROLE_REQUIREMENTS = {
+    "algorithm-config.html": "admin",
+  };
+
   const readJson = (key, fallback) => {
     try {
       const raw = localStorage.getItem(key);
@@ -68,6 +72,17 @@
 
   const isAdmin = () => getSession()?.role === "admin";
 
+  const hasRequiredRole = (requiredRole, session = getSession()) => {
+    if (!requiredRole) return true;
+    if (!session) return false;
+    return session.role === requiredRole;
+  };
+
+  const canAccessPage = (page, session = getSession()) => {
+    const normalizedPage = normalizePage(page || currentPage());
+    return hasRequiredRole(PAGE_ROLE_REQUIREMENTS[normalizedPage], session);
+  };
+
   const login = (username, password) => {
     const account = USERS.find(
       (item) => item.username === String(username || "").trim(),
@@ -105,10 +120,39 @@
     return false;
   };
 
+  const requirePageAccess = (page) => {
+    const normalizedPage = normalizePage(page || currentPage());
+    if (!requireAuth(normalizedPage)) return false;
+    if (canAccessPage(normalizedPage)) return true;
+    window.location.replace("index.html");
+    return false;
+  };
+
   const redirectAuthenticatedUser = () => {
-    if (!isAuthenticated()) return false;
-    window.location.replace(getRedirectTarget());
+    const session = getSession();
+    if (!session) return false;
+    const target = getRedirectTarget();
+    window.location.replace(
+      canAccessPage(target, session) ? target : "index.html",
+    );
     return true;
+  };
+
+  const applyRoleVisibility = (root = document) => {
+    const session = getSession();
+    root.querySelectorAll("[data-requires-role]").forEach((node) => {
+      const requiredRole = node.getAttribute("data-requires-role");
+      const allowed = hasRequiredRole(requiredRole, session);
+      if (!allowed) {
+        node.hidden = true;
+        node.style.display = "none";
+        node.setAttribute("aria-hidden", "true");
+      } else {
+        node.hidden = false;
+        node.style.display = "";
+        node.removeAttribute("aria-hidden");
+      }
+    });
   };
 
   const mountUserPanel = (containerId) => {
@@ -181,12 +225,21 @@
     getSession,
     isAuthenticated,
     isAdmin,
+    canAccessPage,
     login,
     logout,
     switchAccount,
     requireAuth,
+    requirePageAccess,
     redirectAuthenticatedUser,
+    applyRoleVisibility,
     mountUserPanel,
     loadDataAsset,
   };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyRoleVisibility());
+  } else {
+    applyRoleVisibility();
+  }
 })();
