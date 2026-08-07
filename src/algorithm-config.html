@@ -9,7 +9,7 @@
     <script src="assets/market-ui.js"></script>
     <script src="assets/system-access.js"></script>
     <script>
-      window.SystemAccess.requireAuth("algorithm-config.html");
+      window.SystemAccess.requirePageAccess("algorithm-config.html");
     </script>
     <script src="https://unpkg.com/@antv/g6@4.8.24/dist/g6.min.js"></script>
     <style>
@@ -72,10 +72,8 @@
       }
 
       .strategy-sticky-section {
-        position: sticky;
-        top: 1rem;
-        z-index: 30;
-        box-shadow: 0 18px 42px rgba(2, 6, 23, 0.28);
+        position: static;
+        box-shadow: none;
       }
 
       .select-dark {
@@ -223,6 +221,57 @@
         margin: 0;
       }
 
+      .section-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .admin-save-note {
+        color: #94a3b8;
+        font-size: 12px;
+      }
+
+      .admin-save-note.is-pending {
+        color: #fbbf24;
+      }
+
+      .admin-save-note.is-success {
+        color: #34d399;
+      }
+
+      .admin-save-note.is-warning {
+        color: #fda4af;
+      }
+
+      .admin-save-btn {
+        border: 1px solid rgba(56, 189, 248, 0.52);
+        border-radius: 6px;
+        background: linear-gradient(180deg, rgba(14, 165, 233, 0.2), rgba(2, 132, 199, 0.12));
+        color: #e0f2fe;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 7px 16px;
+        cursor: pointer;
+        transition: border-color 160ms ease, transform 160ms ease,
+          box-shadow 160ms ease, background-color 160ms ease;
+      }
+
+      .admin-save-btn:hover {
+        border-color: rgba(125, 211, 252, 0.8);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+      }
+
+      .admin-save-btn:active {
+        transform: translateY(1px);
+      }
+
+      .admin-save-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
       @supports (-moz-appearance: auto) {
         .admin-inline-input[type="number"] {
           padding-right: 6px;
@@ -233,6 +282,11 @@
         .hero-note {
           grid-template-columns: 1fr;
         }
+        .section-actions {
+          width: 100%;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
         body {
           overflow: auto;
         }
@@ -242,25 +296,17 @@
         .page-content {
           overflow: visible;
         }
-        .strategy-sticky-section {
-          position: static;
-          box-shadow: none;
-        }
       }
     </style>
   </head>
   <body class="flex h-screen overflow-hidden">
     <aside class="w-64 glass-panel flex flex-col h-full z-50">
-      <div class="p-6 flex items-center gap-3">
-        <div
-          class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50"
-        >
-          <span
-            class="iconify text-2xl"
-            data-icon="mdi:transmission-tower"
-          ></span>
-        </div>
-        <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
+      <div class="h-16 px-4 flex items-center">
+        <img
+          src="assets/title.png"
+          alt="虚拟电厂报价平台"
+          class="block h-10 w-auto max-w-full object-contain"
+        />
       </div>
       <nav class="flex-1 mt-4 px-4 space-y-2">
         <a
@@ -277,6 +323,7 @@
           基础数据管理
         </a>
         <a
+          data-requires-role="admin"
           class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg text-blue-400"
           href="algorithm-config.html"
         >
@@ -293,16 +340,15 @@
 
     <main class="page-main">
       <header
-        class="h-16 glass-panel flex items-center justify-between px-8 sticky top-0 z-40"
+        class="h-16 glass-panel sticky top-0 z-40 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-8"
       >
-        <h2 class="text-xl font-bold flex items-center gap-2">
-          <span
-            class="iconify text-blue-500"
-            data-icon="mdi:head-cog-outline"
-          ></span>
-          策略能力配置
+        <h2 class="min-w-0 truncate text-lg font-bold tracking-tight text-slate-50">
+          国家能源集团科学技术研究院有限公司
         </h2>
-        <div class="flex items-center gap-3">
+        <div class="text-xl font-semibold tracking-tight text-slate-100">
+          电力系统报价平台
+        </div>
+        <div class="flex items-center justify-self-end gap-3">
           <div class="text-sm text-slate-400">
             <!-- 算法配置.xlsx 驱动的策略能力配置 -->
           </div>
@@ -359,9 +405,19 @@
               <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
               策略配置概览
             </h3>
-            <p class="hidden md:block text-sm text-slate-400">
-              训练基础参数、网络结构与探索噪声配置
-            </p>
+            <div class="section-actions">
+              <p class="hidden md:block text-sm text-slate-400">
+                训练基础参数、网络结构与探索噪声配置
+              </p>
+              <div class="hidden items-center gap-3" id="adminConfigToolbar">
+                <span class="admin-save-note" id="adminConfigStatus">
+                  支持管理员保存策略基础参数
+                </span>
+                <button class="admin-save-btn" id="adminConfigSaveButton" type="button">
+                  保存配置
+                </button>
+              </div>
+            </div>
           </div>
           <div class="p-4 grid grid-cols-12 gap-4">
             <div class="chart-card col-span-12 xl:col-span-3">
@@ -530,78 +586,7 @@
             </div>
           </div>
         </section>
-        <!-- <section class="data-section">
-          <div
-            class="section-title px-4 py-2.5 flex items-center justify-between gap-3"
-          >
-            <h3 class="font-bold flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-              策略组成说明
-            </h3>
-            <p class="hidden md:block text-sm text-slate-400">
-              深度强化学习网络结构与策略形成方式说明
-            </p>
-          </div>
-          <div class="p-4 grid grid-cols-12 gap-4">
-            <div class="chart-card col-span-12 xl:col-span-6">
-              <div class="section-title px-3 py-2">
-                <h3 class="font-bold flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                  能力组成
-                </h3>
-              </div>
-              <div>
-                <div class="kv-row">
-                  <span class="kv-label">输入层</span>
-                  <span class="kv-value wrap" id="inputLayer">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">LSTM层</span>
-                  <span class="kv-value wrap" id="lstmLayer">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">Actor头</span>
-                  <span class="kv-value wrap" id="compActorHead">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">Critic头</span>
-                  <span class="kv-value wrap" id="compCriticHead">--</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="chart-card col-span-12 xl:col-span-6">
-              <div class="section-title px-3 py-2">
-                <h3 class="font-bold flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
-                  策略说明
-                </h3>
-              </div>
-              <div>
-                <div class="kv-row">
-                  <span class="kv-label">算法类型</span>
-                  <span class="kv-value wrap" id="algorithmType">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">核心功能</span>
-                  <span class="kv-value wrap" id="coreFunction">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">输出动作</span>
-                  <span class="kv-value wrap" id="actionDefinition">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">投标值形成方式</span>
-                  <span class="kv-value wrap" id="bidLogic">--</span>
-                </div>
-                <div class="kv-row">
-                  <span class="kv-label">电池控制</span>
-                  <span class="kv-value wrap" id="batteryControl">--</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section> -->
+       
 
         <section class="data-section">
           <div
@@ -641,6 +626,9 @@
       const ADMIN_EDIT_STORAGE_KEY = "gridpulse_algorithm_admin_edits";
       let selectedAlgorithmId = "deepBid";
       let adminDraftValues = {};
+      const adminSaveToolbar = document.getElementById("adminConfigToolbar");
+      const adminSaveButton = document.getElementById("adminConfigSaveButton");
+      const adminSaveStatus = document.getElementById("adminConfigStatus");
       const adminEditableFields = {
         agentCount: document.getElementById("agentCountInput"),
         totalEpisode: document.getElementById("totalEpisodeInput"),
@@ -658,6 +646,12 @@
         nLayers: document.getElementById("nLayers"),
         hiddenSize: document.getElementById("hiddenSize"),
         activation: document.getElementById("activation"),
+      };
+      const adminNumericConstraints = {
+        agentCount: { min: 3, max: 6, precision: 0 },
+        totalEpisode: { min: 500, max: 1000, precision: 0 },
+        gamma: { min: 0.9, max: 0.99, precision: 2 },
+        nLayers: { min: 1, max: 4, precision: 0 },
       };
 
       const escapeHtml = (value) =>
@@ -709,6 +703,49 @@
       };
 
       const isActiveInput = (input) => document.activeElement === input;
+
+      const setAdminStatus = (message, tone = "default") => {
+        if (!adminSaveStatus) return;
+        adminSaveStatus.textContent = message;
+        adminSaveStatus.classList.remove("is-pending", "is-success", "is-warning");
+        if (tone === "pending") adminSaveStatus.classList.add("is-pending");
+        if (tone === "success") adminSaveStatus.classList.add("is-success");
+        if (tone === "warning") adminSaveStatus.classList.add("is-warning");
+      };
+
+      const formatConstrainedNumber = (field, value) => {
+        const constraint = adminNumericConstraints[field];
+        if (!constraint) return String(value);
+        return constraint.precision > 0
+          ? Number(value).toFixed(constraint.precision)
+          : String(Math.round(value));
+      };
+
+      const sanitizeNumericDraft = (field, rawValue) => {
+        const constraint = adminNumericConstraints[field];
+        if (!constraint) return String(rawValue ?? "");
+
+        let text = String(rawValue ?? "").trim();
+        if (constraint.precision === 0) {
+          text = text.replace(/\D/g, "");
+        } else {
+          text = text.replace(/[^\d.]/g, "");
+          const parts = text.split(".");
+          if (parts.length > 2) {
+            text = `${parts.shift()}.${parts.join("")}`;
+          }
+          const [integer = "", decimal = ""] = text.split(".");
+          text = decimal ? `${integer}.${decimal.slice(0, constraint.precision)}` : integer;
+        }
+
+        if (!text) return "";
+        const numeric = Number(text);
+        if (!Number.isFinite(numeric)) return "";
+        if (numeric > constraint.max) {
+          return formatConstrainedNumber(field, constraint.max);
+        }
+        return text;
+      };
 
       const normalizeNamedOption = (value, options, fallback) => {
         const text = String(value || "").trim();
@@ -766,24 +803,18 @@
       const normalizeAdminValue = (field, rawValue) => {
         const trimmed = String(rawValue ?? "").trim();
         const numeric = Number(trimmed);
-        const clamp = (value, min, max) =>
-          Math.min(Math.max(value, min), max);
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+        const numericConstraint = adminNumericConstraints[field];
+
+        if (numericConstraint) {
+          if (!trimmed || !Number.isFinite(numeric)) return null;
+          const normalized = clamp(numeric, numericConstraint.min, numericConstraint.max);
+          return formatConstrainedNumber(field, normalized);
+        }
 
         switch (field) {
-          case "agentCount":
-            if (!Number.isFinite(numeric)) return null;
-            return String(clamp(Math.round(numeric), 3, 6));
-          case "totalEpisode":
-            if (!Number.isFinite(numeric)) return null;
-            return String(clamp(Math.round(numeric), 500, 1000));
-          case "gamma":
-            if (!Number.isFinite(numeric)) return null;
-            return clamp(Number(numeric.toFixed(2)), 0.9, 0.99).toFixed(2);
           case "networkType":
             return ["LSTM", "GRU"].includes(trimmed) ? trimmed : null;
-          case "nLayers":
-            if (!Number.isFinite(numeric)) return null;
-            return String(clamp(Math.round(numeric), 1, 4));
           case "hiddenSize":
             return ["64", "128", "256"].includes(trimmed) ? trimmed : null;
           case "activation":
@@ -807,6 +838,49 @@
         writeAdminEdits(store);
       };
 
+      const collectAdminConfigValues = () => {
+        const effective = getEffectiveAdminConfig(selectedAlgorithm());
+        const updates = [];
+        const invalidFields = [];
+
+        Object.entries(adminEditableFields).forEach(([field, input]) => {
+          if (!input) return;
+          const draftValue = adminDraftValues[field];
+          const rawValue = draftValue !== undefined ? draftValue : input.value;
+          const normalized = normalizeAdminValue(field, rawValue);
+
+          if (!normalized) {
+            invalidFields.push(field);
+            input.value = effective[field];
+            delete adminDraftValues[field];
+            return;
+          }
+
+          input.value = normalized;
+          adminDraftValues[field] = normalized;
+          updates.push([field, normalized]);
+        });
+
+        return { effective, updates, invalidFields };
+      };
+
+      const saveAdminConfig = () => {
+        const { updates, invalidFields } = collectAdminConfigValues();
+
+        updates.forEach(([field, value]) => {
+          saveAdminValue(field, value);
+        });
+        adminDraftValues = {};
+
+        if (invalidFields.length) {
+          setAdminStatus("部分输入无效，已恢复默认范围后保存。", "warning");
+        } else {
+          setAdminStatus("策略配置已保存。", "success");
+        }
+
+        render(MarketUI.selectedYear());
+      };
+
       const syncAdminEditableState = (effectiveConfig) => {
         Object.entries(adminEditableFields).forEach(([field, input]) => {
           const display = adminEditableTargets[field];
@@ -826,18 +900,6 @@
         });
       };
 
-      const commitAdminInput = (field, input) => {
-        const normalized = normalizeAdminValue(field, input.value);
-        if (!normalized) {
-          delete adminDraftValues[field];
-          input.value = getEffectiveAdminConfig(selectedAlgorithm())[field];
-          return;
-        }
-        delete adminDraftValues[field];
-        saveAdminValue(field, normalized);
-        render(MarketUI.selectedYear());
-      };
-
       const bindAdminInputs = () => {
         if (!isAdminView) return;
 
@@ -845,22 +907,31 @@
           if (!input) return;
           input.addEventListener("input", () => {
             if (input.type === "number") {
-              input.value = input.value.replace(/[^\d.]/g, "");
+              input.value = sanitizeNumericDraft(field, input.value);
             }
             adminDraftValues[field] = input.value;
+            setAdminStatus("存在未保存修改。", "pending");
           });
           input.addEventListener("change", () => {
-            commitAdminInput(field, input);
-          });
-          input.addEventListener("blur", () => {
-            commitAdminInput(field, input);
+            const normalized = normalizeAdminValue(field, input.value);
+            if (normalized) {
+              input.value = normalized;
+              adminDraftValues[field] = normalized;
+            } else {
+              delete adminDraftValues[field];
+              input.value = getEffectiveAdminConfig(selectedAlgorithm())[field];
+            }
+            setAdminStatus("存在未保存修改。", "pending");
           });
           input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
-              input.blur();
+              event.preventDefault();
+              adminSaveButton?.focus();
             }
           });
         });
+
+        adminSaveButton?.addEventListener("click", saveAdminConfig);
       };
 
       const initAlgorithmSelector = () => {
@@ -881,6 +952,9 @@
         selector.addEventListener("change", () => {
           adminDraftValues = {};
           selectedAlgorithmId = selector.value;
+          if (isAdminView) {
+            setAdminStatus("支持管理员保存策略基础参数");
+          }
           render(MarketUI.selectedYear());
         });
       };
@@ -928,13 +1002,13 @@
 
         set("agentCount", `${effective.agentCount} 个`);
         set("sampleCount", `${summary.count.toLocaleString("zh-CN")} 点`);
-        set("avgPrice", `${MarketUI.number(summary.avgPrice, 2)} €/MWh`);
+        set("avgPrice", `${MarketUI.number(summary.avgPrice, 2)} 元/MWh`);
         set(
           "priceRange",
           `${MarketUI.number(summary.minPrice, 1)}-${MarketUI.number(summary.maxPrice, 1)}`
         );
         set("renewableShare", `${MarketUI.number(summary.renewableShare, 1)}%`);
-        set("revenue", `${MarketUI.number(summary.revenueWan, 1)} 万€`);
+        set("revenue", `${MarketUI.number(summary.revenueWan, 1)} 万元`);
         renderAlgorithmConfig();
       };
 
@@ -1234,6 +1308,12 @@
         renderMarketData(year);
         renderNeuralNetwork();
       };
+
+      if (isAdminView) {
+        adminSaveToolbar?.classList.remove("hidden");
+        adminSaveToolbar?.classList.add("flex");
+        setAdminStatus("支持管理员保存策略基础参数");
+      }
 
       bindAdminInputs();
       initAlgorithmSelector();
