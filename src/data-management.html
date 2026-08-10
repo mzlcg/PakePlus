@@ -16,6 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="assets/market-ui.js"></script>
     <script src="assets/system-access.js"></script>
+    <script src="assets/chart-export.js"></script>
+    <script src="assets/chart-export-builders.js"></script>
     <script>
       window.SystemAccess.requireAuth("data-management.html");
     </script>
@@ -334,8 +336,7 @@
           <div class="text-xl font-semibold tracking-tight text-slate-100">
             电力系统报价平台
           </div>
-          <div class="flex items-center justify-self-end gap-4">
-            <div class="text-sm text-slate-400">CSV 出力/电价与 VPP 参数接入</div>
+          <div class="flex items-center justify-self-end gap-3">
             <el-date-picker
               v-model="selectedDate"
               type="date"
@@ -347,6 +348,7 @@
               popper-class="dark-date-picker"
               class="market-date-picker"
             ></el-date-picker>
+            <div data-chart-export-all="marketDaily,marketMonthly" data-label="导出数据"></div>
             <div id="sessionPanel"></div>
           </div>
         </header>
@@ -365,9 +367,11 @@
             </div>
             <div class="section-body chart-layout p-3 grid grid-cols-12 gap-3">
               <div class="col-span-12 xl:col-span-6 chart-card chart-flex-card p-2.5">
+                <div class="flex justify-end pb-1" data-chart-export="marketDaily"></div>
                 <div class="chart-canvas" id="loadRenewableChart"></div>
               </div>
               <div class="col-span-12 xl:col-span-6 chart-card chart-flex-card p-2.5">
+                <div class="flex justify-end pb-1" data-chart-export="marketMonthly"></div>
                 <div class="chart-canvas" id="busRangeChart"></div>
               </div>
             </div>
@@ -839,6 +843,20 @@
         .use(ElementPlus)
         .mount("#app");
       window.SystemAccess.mountUserPanel("sessionPanel");
+
+      if (window.ChartExport && window.ChartExportBuilders) {
+        window.ChartExport.register({
+          key: "marketDaily",
+          filename: "负荷新能源出力与电价_全部日期",
+          build: () => window.ChartExportBuilders.marketDailyFull(marketData),
+        });
+        window.ChartExport.register({
+          key: "marketMonthly",
+          filename: "月度新能源出力与均价_全部年份",
+          build: () => window.ChartExportBuilders.marketMonthlyFull(marketData),
+        });
+        window.ChartExport.mount();
+      }
       })().catch((error) => {
         console.error("Failed to initialize data-management.html", error);
       });
