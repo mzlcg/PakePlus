@@ -6,9 +6,18 @@
     <title>系统总览 - GridPulse AI </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus/dist/locale/zh-cn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="assets/market-ui.js"></script>
     <script src="assets/system-access.js"></script>
+    <script src="assets/chart-export.js"></script>
+    <script src="assets/chart-export-builders.js"></script>
     <script>
       window.SystemAccess.requireAuth("index.html");
     </script>
@@ -57,6 +66,17 @@
         border-bottom: 1px solid rgba(56, 189, 248, 0.12);
       }
 
+      .section-toolbar {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .section-toolbar-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 12px;
+      }
+
       .metric-card {
         position: relative;
         overflow: hidden;
@@ -98,39 +118,170 @@
         background: currentColor;
       }
 
-      .control-select {
+      .overview-picker {
         width: 100%;
-        appearance: none;
-        border-radius: 12px;
-        border: 1px solid rgba(71, 85, 105, 0.9);
-        background: rgba(2, 6, 23, 0.7);
-        color: #f8fafc;
-        font-size: 14px;
-        font-weight: 500;
-        padding: 10px 42px 10px 14px;
-        outline: none;
       }
 
-      .control-select:focus {
-        border-color: rgba(96, 165, 250, 0.95);
+      .overview-picker .el-input__wrapper {
+        background: rgba(2, 6, 23, 0.7) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 0 1px rgba(71, 85, 105, 0.9) inset !important;
+        min-height: 42px !important;
+        padding: 0 14px !important;
       }
 
-      .select-wrap {
-        position: relative;
+      .overview-picker:hover .el-input__wrapper {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.7) inset !important;
       }
 
-      .select-wrap::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        right: 14px;
-        width: 8px;
-        height: 8px;
-        margin-top: -6px;
-        border-right: 2px solid #94a3b8;
-        border-bottom: 2px solid #94a3b8;
-        transform: rotate(45deg);
-        pointer-events: none;
+      .overview-picker.is-focus .el-input__wrapper,
+      .overview-picker .el-input__wrapper.is-focus {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.95) inset !important;
+      }
+
+      .overview-picker .el-input__inner,
+      .overview-picker .el-input__wrapper input {
+        color: #f8fafc !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+      }
+
+      .overview-picker .el-input__prefix,
+      .overview-picker .el-input__suffix,
+      .overview-picker .el-input__icon {
+        color: #94a3b8 !important;
+      }
+
+      .overview-picker.is-disabled .el-input__wrapper {
+        background: rgba(15, 23, 42, 0.55) !important;
+        box-shadow: 0 0 0 1px rgba(51, 65, 85, 0.8) inset !important;
+      }
+
+      .overview-picker-popper {
+        border-radius: 16px !important;
+        border: 1px solid rgba(51, 65, 85, 0.95) !important;
+        box-shadow: 0 18px 48px rgba(2, 6, 23, 0.56) !important;
+        background: #0f172a !important;
+      }
+
+      .overview-picker-popper.el-popper,
+      .overview-picker-popper.el-picker__popper {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .overview-picker-popper .el-popper__arrow::before,
+      .overview-picker-popper.el-popper .el-popper__arrow::before,
+      .overview-picker-popper.el-picker__popper .el-popper__arrow::before {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .overview-picker-popper .el-picker-panel,
+      .overview-picker-popper .el-date-picker,
+      .overview-picker-popper .el-picker-panel__content,
+      .overview-picker-popper .el-picker-panel__footer {
+        background: #0f172a !important;
+        color: #dbeafe !important;
+      }
+
+      .overview-picker-popper .el-date-picker__header-label,
+      .overview-picker-popper .el-picker-panel__icon-btn,
+      .overview-picker-popper .el-date-table th,
+      .overview-picker-popper .el-date-table td,
+      .overview-picker-popper .el-year-table td .cell {
+        color: #dbeafe !important;
+      }
+
+      .overview-picker-popper .el-date-table td.today .el-date-table-cell__text,
+      .overview-picker-popper .el-year-table td.today .cell {
+        color: #38bdf8 !important;
+      }
+
+      .overview-picker-popper .el-date-table td.available:hover,
+      .overview-picker-popper .el-year-table td.available:hover {
+        color: #93c5fd !important;
+      }
+
+      .overview-select {
+        width: 100%;
+      }
+
+      .overview-select .el-select__wrapper {
+        min-height: 42px !important;
+        background: rgba(2, 6, 23, 0.7) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 0 1px rgba(71, 85, 105, 0.9) inset !important;
+        padding: 0 36px 0 14px !important;
+      }
+
+      .overview-select:hover .el-select__wrapper {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.7) inset !important;
+      }
+
+      .overview-select.is-focused .el-select__wrapper,
+      .overview-select .el-select__wrapper.is-focused {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.95) inset !important;
+      }
+
+      .overview-select .el-select__selected-item,
+      .overview-select .el-select__placeholder,
+      .overview-select .el-select__input-wrapper {
+        color: #f8fafc !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+      }
+
+      .overview-select .el-select__placeholder.is-transparent {
+        color: #94a3b8 !important;
+      }
+
+      .overview-select .el-select__caret,
+      .overview-select .el-icon {
+        color: #94a3b8 !important;
+      }
+
+      .overview-select.is-disabled .el-select__wrapper {
+        background: rgba(15, 23, 42, 0.55) !important;
+        box-shadow: 0 0 0 1px rgba(51, 65, 85, 0.8) inset !important;
+      }
+
+      .overview-select-popper {
+        border-radius: 16px !important;
+        border: 1px solid rgba(51, 65, 85, 0.95) !important;
+        box-shadow: 0 18px 48px rgba(2, 6, 23, 0.56) !important;
+        background: #0f172a !important;
+      }
+
+      .overview-select-popper.el-popper {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .overview-select-popper .el-popper__arrow::before {
+        background: #0f172a !important;
+        border-color: rgba(51, 65, 85, 0.95) !important;
+      }
+
+      .overview-select-popper .el-select-dropdown,
+      .overview-select-popper .el-popper__inner,
+      .overview-select-popper .el-scrollbar {
+        background: #0f172a !important;
+      }
+
+      .overview-select-popper .el-select-dropdown__item {
+        color: #dbeafe !important;
+        font-size: 14px !important;
+      }
+
+      .overview-select-popper .el-select-dropdown__item.hover,
+      .overview-select-popper .el-select-dropdown__item:hover {
+        background: rgba(30, 41, 59, 0.95) !important;
+      }
+
+      .overview-select-popper .el-select-dropdown__item.is-selected {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
       }
 
       .info-row {
@@ -161,6 +312,42 @@
       .chart-host-lg {
         width: 100%;
         height: 320px;
+      }
+
+      .analysis-chart-host {
+        height: 240px;
+      }
+
+      .compact-info-card {
+        padding: 18px;
+      }
+
+      .compact-info-card .info-row {
+        padding: 9px 0;
+      }
+
+      .compact-access-list {
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+
+      .compact-access-list::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .compact-access-list::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(71, 85, 105, 0.9);
+      }
+
+      .compact-access-card {
+        padding: 12px 14px;
+      }
+
+      .compact-access-grid {
+        margin-top: 10px;
+        gap: 10px;
       }
 
       .chart-host-md {
@@ -220,16 +407,12 @@
   </head>
   <body class="flex min-h-screen">
     <aside class="w-64 glass-panel flex flex-col h-screen sticky top-0 z-50">
-      <div class="p-6 flex items-center gap-3">
-        <div
-          class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/30"
-        >
-          <span class="iconify text-2xl" data-icon="mdi:transmission-tower"></span>
-        </div>
-        <div>
-          <div class="font-bold text-[18px] tracking-tight">虚拟电厂报价平台</div>
-          <!-- <div class="text-xs text-slate-400 mt-0.5">虚拟电厂报价平台</div> -->
-        </div>
+      <div class="h-16 px-4 flex items-center">
+        <img
+          src="assets/title.png"
+          alt="虚拟电厂报价平台"
+          class="block h-10 w-auto max-w-full object-contain"
+        />
       </div>
       <nav class="flex-1 mt-3 px-4 space-y-2">
         <a
@@ -247,6 +430,7 @@
           基础数据管理
         </a>
         <a
+          data-requires-role="admin"
           class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-slate-800/70 transition-all"
           href="algorithm-config.html"
         >
@@ -269,73 +453,16 @@
     </aside>
 
     <main class="flex-1 min-w-0">
-      <header class="glass-panel sticky top-0 z-40 border-x-0 border-t-0 rounded-none">
-        <div class="px-8 py-5">
-          <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-            <div class="max-w-3xl">
-              <div class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-400">
-                Overview Console
-              </div>
-              <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-50">
-                虚拟电厂基础数据、策略配置与仿真结果联动总览
-              </h1>
-              <!-- <p class="mt-3 text-sm leading-6 text-slate-400">
-                总览页直接复用基础数据管理、策略算法配置、仿真结果分析三页的真实数据口径，
-                统一展示市场画像、算法能力和运行表现。
-              </p> -->
-            </div>
-            <div id="sessionPanel"></div>
-            <!-- <div class="flex flex-wrap items-center gap-3">
-              <span class="status-chip text-emerald-400 bg-emerald-500/10">
-                数据接入在线
-              </span>
-              <span class="status-chip text-sky-400 bg-sky-500/10" id="headerGeneratedAt">
-                更新时间 --
-              </span>
-            </div> -->
-          </div>
-
-          <div class="mt-5 grid grid-cols-12 gap-4">
-            <div class="col-span-12 md:col-span-6 xl:col-span-2">
-              <div class="text-xs text-slate-500 mb-2">市场年份</div>
-              <div class="select-wrap">
-                <select id="yearSelector" class="control-select"></select>
-              </div>
-            </div>
-            <div class="col-span-12 md:col-span-6 xl:col-span-2">
-              <div class="text-xs text-slate-500 mb-2">市场日期</div>
-              <div class="select-wrap">
-                <select id="dateSelector" class="control-select"></select>
-              </div>
-            </div>
-            <div class="col-span-12 md:col-span-6 xl:col-span-3">
-              <div class="text-xs text-slate-500 mb-2">策略算法</div>
-              <div class="select-wrap">
-                <select id="algorithmSelector" class="control-select"></select>
-              </div>
-            </div>
-            <div class="col-span-12 md:col-span-6 xl:col-span-2">
-              <div class="text-xs text-slate-500 mb-2">分析对象</div>
-              <div class="select-wrap">
-                <select id="analysisVppSelector" class="control-select"></select>
-              </div>
-            </div>
-            <div class="col-span-12 md:col-span-6 xl:col-span-1">
-              <div class="text-xs text-slate-500 mb-2">区间</div>
-              <div class="select-wrap">
-                <select id="analysisHorizonSelector" class="control-select">
-                  <option value="1">1天</option>
-                  <option value="3">3天</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-span-12 md:col-span-6 xl:col-span-2">
-              <div class="text-xs text-slate-500 mb-2">仿真日期</div>
-              <div class="select-wrap">
-                <select id="analysisDateSelector" class="control-select"></select>
-              </div>
-            </div>
-          </div>
+      <header class="h-16 glass-panel sticky top-0 z-40 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
+        <h1 class="min-w-0 truncate text-lg font-bold tracking-tight text-slate-50">
+          国家能源集团科学技术研究院有限公司
+        </h1>
+        <div class="text-xl font-semibold tracking-tight text-slate-100">
+          电力系统报价平台
+        </div>
+        <div class="justify-self-end flex items-center gap-3">
+          <div data-chart-export-all="marketDaily,marketMonthly,trainingCurves,vppOperation" data-label="导出数据"></div>
+          <div id="sessionPanel"></div>
         </div>
       </header>
 
@@ -347,7 +474,7 @@
                 <div class="text-sm text-slate-400">年度平均电价</div>
                 <div class="mt-3 text-3xl font-bold text-slate-50">
                   <span id="metricAvgPrice">--</span>
-                  <span class="text-base font-medium text-slate-500">€/MWh</span>
+                  <span class="text-base font-medium text-slate-500">元/MWh</span>
                 </div>
               </div>
               <div class="w-11 h-11 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
@@ -379,7 +506,7 @@
                 <div class="text-sm text-slate-400">年度收益估算</div>
                 <div class="mt-3 text-3xl font-bold text-slate-50">
                   <span id="metricRevenue">--</span>
-                  <span class="text-base font-medium text-slate-500">万€</span>
+                  <span class="text-base font-medium text-slate-500">万元</span>
                 </div>
               </div>
               <div class="w-11 h-11 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center">
@@ -393,8 +520,9 @@
             <div class="flex items-start justify-between">
               <div>
                 <div class="text-sm text-slate-400">仿真区间总收益</div>
-                <div class="mt-3 text-3xl font-bold text-slate-50" id="metricSimulationRevenue">
-                  --
+                <div class="mt-3 text-3xl font-bold text-slate-50">
+                  <span id="metricSimulationRevenue">--</span>
+                  <span class="text-base font-medium text-slate-500">元</span>
                 </div>
               </div>
               <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
@@ -406,17 +534,21 @@
         </section>
 
         <section class="section-shell">
-          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <div class="section-heading px-6 py-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h2 class="text-lg font-bold text-slate-50">基础数据接入总览</h2>
               <p class="mt-1 text-sm text-slate-400">
-                对应“基础数据管理”页面，汇总年度市场画像、日内出力电价与 VPP 资源接入状态。
+                对应“基础数据管理”页面，汇总年度市场画像、日内出力电价与基础数据接入状态。
               </p>
             </div>
-            <div class="text-sm text-slate-400" id="marketSummaryLabel">--</div>
+            <div class="section-toolbar xl:w-80 xl:flex-none">
+              <div class="section-toolbar-label">市场日期</div>
+              <div id="datePickerApp"></div>
+              <div class="mt-3 text-sm text-slate-400 xl:text-right" id="marketSummaryLabel">--</div>
+            </div>
           </div>
           <div class="p-6 grid grid-cols-12 gap-4">
-            <article class="col-span-12 xl:col-span-7 chart-card p-4">
+            <article class="col-span-12 xl:col-span-6 chart-card p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <h3 class="text-base font-semibold text-slate-50">日内出力与电价</h3>
@@ -424,12 +556,15 @@
                     选定日期的 15 分钟市场电价、光伏、风电与火电出力曲线。
                   </p>
                 </div>
-                <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="marketDateLabel">--</div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="marketDateLabel">--</div>
+                  <div data-chart-export="marketDaily"></div>
+                </div>
               </div>
               <div class="chart-host-lg mt-4" id="marketDailyChart"></div>
             </article>
 
-            <article class="col-span-12 xl:col-span-5 chart-card p-4">
+            <article class="col-span-12 xl:col-span-6 chart-card p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <h3 class="text-base font-semibold text-slate-50">年度市场结构</h3>
@@ -437,14 +572,12 @@
                     年度发电结构、月度均价与新能源均值共同展示。
                   </p>
                 </div>
-                <div class="text-xs uppercase tracking-[0.16em] text-slate-500">YEAR</div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <div class="text-xs uppercase tracking-[0.16em] text-slate-500">YEAR</div>
+                  <div data-chart-export="marketMonthly"></div>
+                </div>
               </div>
               <div class="chart-host-lg mt-4" id="marketStructureChart"></div>
-            </article>
-
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">VPP 资源接入</h3>
-              <div class="mt-4 space-y-3" id="vppAccessList"></div>
             </article>
 
             <article class="col-span-12 xl:col-span-4 chart-card p-5">
@@ -469,7 +602,7 @@
               </div>
             </article>
 
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
+            <article class="col-span-12 xl:col-span-6 chart-card p-5">
               <h3 class="text-base font-semibold text-slate-50">基础数据快照</h3>
               <div class="overflow-x-auto mt-4">
                 <table class="w-full mini-table">
@@ -489,14 +622,18 @@
         </section>
 
         <section class="section-shell">
-          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <div class="section-heading px-6 py-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h2 class="text-lg font-bold text-slate-50">策略配置快照</h2>
               <p class="mt-1 text-sm text-slate-400">
                 对应“策略算法配置”页面，汇总当前算法的目标、动作定义、训练预算和关键参数。
               </p>
             </div>
-            <div class="text-sm text-slate-400" id="algorithmSummaryLabel">--</div>
+            <div class="section-toolbar xl:w-[360px] xl:flex-none">
+              <div class="section-toolbar-label">策略算法</div>
+              <div id="algorithmSelectApp"></div>
+              <div class="mt-3 text-sm text-slate-400 xl:text-right" id="algorithmSummaryLabel">--</div>
+            </div>
           </div>
           <div class="p-6 grid grid-cols-12 gap-4">
             <article class="col-span-12 xl:col-span-4 chart-card p-5">
@@ -582,7 +719,7 @@
               </div>
             </article>
 
-            <article class="col-span-12 xl:col-span-7 chart-card p-4">
+            <article class="col-span-12 xl:col-span-12 chart-card p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <h3 class="text-base font-semibold text-slate-50">训练曲线快照</h3>
@@ -590,123 +727,99 @@
                     复用仿真分析页的奖励、MAE、MBE 收敛结果，用于快速比较策略收敛表现。
                   </p>
                 </div>
-                <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Training</div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Training</div>
+                  <div data-chart-export="trainingCurves"></div>
+                </div>
               </div>
               <div class="chart-host-md mt-4" id="trainingSummaryChart"></div>
             </article>
 
-            <article class="col-span-12 xl:col-span-5 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">策略说明摘要</h3>
-              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-300">
-                <div class="timeline-item" id="algorithmTimeline1">--</div>
-                <div class="timeline-item" id="algorithmTimeline2">--</div>
-                <div class="timeline-item" id="algorithmTimeline3">--</div>
-                <div class="timeline-item" id="algorithmTimeline4">--</div>
-              </div>
-            </article>
           </div>
         </section>
 
         <section class="section-shell">
-          <div class="section-heading px-6 py-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <div class="section-heading px-6 py-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h2 class="text-lg font-bold text-slate-50">仿真结果快照</h2>
               <p class="mt-1 text-sm text-slate-400">
                 对应“仿真结果分析”页面，按 VPP 和日期区间展示收益、偏差、SOC 与主运行曲线。
               </p>
             </div>
-            <div class="text-sm text-slate-400" id="analysisSummaryLabel">--</div>
+            <div class="section-toolbar xl:w-[560px] xl:flex-none">
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div>
+                  <div class="section-toolbar-label">分析对象</div>
+                  <div id="analysisVppSelectApp"></div>
+                </div>
+                <div>
+                  <div class="section-toolbar-label">区间</div>
+                  <div id="analysisHorizonSelectApp"></div>
+                </div>
+                <div>
+                  <div class="section-toolbar-label">仿真日期</div>
+                  <div id="analysisDatePickerApp"></div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-slate-400 xl:text-right" id="analysisSummaryLabel">--</div>
+            </div>
           </div>
           <div class="p-6 grid grid-cols-12 gap-4">
-            <article class="col-span-12 xl:col-span-8 chart-card p-4">
+            <article class="col-span-12 xl:col-span-12 chart-card p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <h3 class="text-base font-semibold text-slate-50" id="analysisChartTitle">--</h3>
                   <p class="mt-1 text-sm text-slate-400" id="analysisChartMeta">--</p>
                 </div>
-                <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="analysisRangeLabel">--</div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <div class="text-xs uppercase tracking-[0.16em] text-slate-500" id="analysisRangeLabel">--</div>
+                  <div data-chart-export="vppOperation"></div>
+                </div>
               </div>
-              <div class="chart-host-lg mt-4" id="analysisOverviewChart"></div>
+              <div class="chart-host-lg analysis-chart-host mt-4" id="analysisOverviewChart"></div>
             </article>
 
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">区间 KPI</h3>
-              <div class="mt-4">
-                <div class="info-row">
-                  <div class="info-label">总收益</div>
-                  <div class="info-value" id="analysisRevenue">--</div>
+            <article class="col-span-12 xl:col-span-6 chart-card compact-info-card">
+                <h3 class="text-base font-semibold text-slate-50">区间 KPI</h3>
+                <div class="mt-4">
+                  <div class="info-row">
+                    <div class="info-label">总收益</div>
+                    <div class="info-value">
+                      <span id="analysisRevenue">--</span>
+                      <span>元</span>
+                    </div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">平均偏差</div>
+                    <div class="info-value" id="analysisDeviation">--</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">最大储能功率</div>
+                    <div class="info-value" id="analysisPower">--</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">SOC 区间</div>
+                    <div class="info-value" id="analysisSocRange">--</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">数据覆盖率</div>
+                    <div class="info-value" id="analysisCoverage">--</div>
+                  </div>
+                  <!-- <div class="info-row">
+                    <div class="info-label">仿真数据文件</div>
+                    <div class="info-value" id="analysisFiles">--</div>
+                  </div> -->
                 </div>
-                <div class="info-row">
-                  <div class="info-label">平均偏差</div>
-                  <div class="info-value" id="analysisDeviation">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">最大储能功率</div>
-                  <div class="info-value" id="analysisPower">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">SOC 区间</div>
-                  <div class="info-value" id="analysisSocRange">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">数据覆盖率</div>
-                  <div class="info-value" id="analysisCoverage">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">仿真数据文件</div>
-                  <div class="info-value" id="analysisFiles">--</div>
-                </div>
-              </div>
             </article>
 
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">仿真数据源状态</h3>
-              <div class="mt-4">
-                <div class="info-row">
-                  <div class="info-label">生成时间</div>
-                  <div class="info-value" id="visualGeneratedAt">--</div>
+            <article class="col-span-12 xl:col-span-6 chart-card compact-info-card">
+                <div class="flex items-center justify-between gap-4">
+                  <h3 class="text-base font-semibold text-slate-50">VPP 资源接入</h3>
+                  <div class="text-xs text-slate-500">跟随分析对象</div>
                 </div>
-                <div class="info-row">
-                  <div class="info-label">数据来源</div>
-                  <div class="info-value" id="visualSource">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">分析 VPP</div>
-                  <div class="info-value" id="visualSelectedVpp">--</div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">取数列</div>
-                  <div class="info-value" id="visualColumns">--</div>
-                </div>
-              </div>
+                <div class="mt-4 space-y-3 compact-access-list" id="vppAccessList"></div>
             </article>
 
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">运行说明</h3>
-              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-300">
-                <div class="timeline-item" id="analysisTimeline1">--</div>
-                <div class="timeline-item" id="analysisTimeline2">--</div>
-                <div class="timeline-item" id="analysisTimeline3">--</div>
-                <div class="timeline-item" id="analysisTimeline4">--</div>
-              </div>
-            </article>
-
-            <article class="col-span-12 xl:col-span-4 chart-card p-5">
-              <h3 class="text-base font-semibold text-slate-50">分析对象清单</h3>
-              <div class="overflow-x-auto mt-4">
-                <table class="w-full mini-table">
-                  <thead>
-                    <tr>
-                      <th>对象</th>
-                      <th>记录数</th>
-                      <th>天数</th>
-                      <th>字段</th>
-                    </tr>
-                  </thead>
-                  <tbody id="analysisDatasetBody"></tbody>
-                </table>
-              </div>
-            </article>
           </div>
         </section>
       </div>
@@ -792,12 +905,6 @@
         };
 
         const elements = {
-          yearSelector: document.getElementById("yearSelector"),
-          dateSelector: document.getElementById("dateSelector"),
-          algorithmSelector: document.getElementById("algorithmSelector"),
-          analysisVppSelector: document.getElementById("analysisVppSelector"),
-          analysisDateSelector: document.getElementById("analysisDateSelector"),
-          analysisHorizonSelector: document.getElementById("analysisHorizonSelector"),
           metricAvgPrice: document.getElementById("metricAvgPrice"),
           metricAvgPriceTrend: document.getElementById("metricAvgPriceTrend"),
           metricRenewableShare: document.getElementById("metricRenewableShare"),
@@ -831,10 +938,6 @@
           algorithmHiddenSize: document.getElementById("algorithmHiddenSize"),
           algorithmOutputSize: document.getElementById("algorithmOutputSize"),
           algorithmParamCount: document.getElementById("algorithmParamCount"),
-          algorithmTimeline1: document.getElementById("algorithmTimeline1"),
-          algorithmTimeline2: document.getElementById("algorithmTimeline2"),
-          algorithmTimeline3: document.getElementById("algorithmTimeline3"),
-          algorithmTimeline4: document.getElementById("algorithmTimeline4"),
           analysisSummaryLabel: document.getElementById("analysisSummaryLabel"),
           analysisChartTitle: document.getElementById("analysisChartTitle"),
           analysisChartMeta: document.getElementById("analysisChartMeta"),
@@ -845,15 +948,6 @@
           analysisSocRange: document.getElementById("analysisSocRange"),
           analysisCoverage: document.getElementById("analysisCoverage"),
           analysisFiles: document.getElementById("analysisFiles"),
-          visualGeneratedAt: document.getElementById("visualGeneratedAt"),
-          visualSource: document.getElementById("visualSource"),
-          visualSelectedVpp: document.getElementById("visualSelectedVpp"),
-          visualColumns: document.getElementById("visualColumns"),
-          analysisTimeline1: document.getElementById("analysisTimeline1"),
-          analysisTimeline2: document.getElementById("analysisTimeline2"),
-          analysisTimeline3: document.getElementById("analysisTimeline3"),
-          analysisTimeline4: document.getElementById("analysisTimeline4"),
-          analysisDatasetBody: document.getElementById("analysisDatasetBody"),
           sidebarDataSource: document.getElementById("sidebarDataSource"),
           sidebarVisualSource: document.getElementById("sidebarVisualSource"),
           sidebarDateRange: document.getElementById("sidebarDateRange"),
@@ -874,10 +968,9 @@
             : marketYears[marketYears.length - 1];
         }
 
-        function normalizeDate(date, year) {
-          const dates = getMarketDatesByYear(year);
-          if (!dates.length) return "";
-          return dates.includes(date) ? date : dates[dates.length - 1];
+        function normalizeDate(date) {
+          if (!marketDates.length) return "";
+          return marketDates.includes(date) ? date : marketDates[marketDates.length - 1];
         }
 
         function normalizeAlgorithmId(algorithmId) {
@@ -906,25 +999,145 @@
           analysisDate: localStorage.getItem(storageKeys.analysisDate) || "",
         };
 
-        state.date = normalizeDate(MarketUI.selectedDate(), state.year);
+        state.date = normalizeDate(MarketUI.selectedDate());
+        state.year = state.date
+          ? normalizeYear(Number(state.date.slice(0, 4)))
+          : normalizeYear(state.year);
 
-        function getMarketDatesByYear(year) {
-          return marketDates.filter((date) => Number(date.slice(0, 4)) === Number(year));
+        function formatPickerDate(date) {
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+            date.getDate()
+          ).padStart(2, "0")}`;
+        }
+
+        const pickerModels = {
+          marketDate: Vue.reactive({
+            value: state.date || "",
+            disabled: true,
+            allowedDateSet: new Set(),
+          }),
+          analysisDate: Vue.reactive({
+            value: state.analysisDate || "",
+            disabled: true,
+            allowedDateSet: new Set(),
+          }),
+          algorithm: Vue.reactive({
+            value: state.algorithmId || "",
+            disabled: !algorithms.length,
+            options: [],
+          }),
+          analysisVpp: Vue.reactive({
+            value: state.analysisVpp,
+            disabled: false,
+            options: [],
+          }),
+          analysisHorizon: Vue.reactive({
+            value: String(state.analysisHorizon),
+            disabled: false,
+            options: [
+              { value: "1", label: "1天" },
+              { value: "3", label: "3天" },
+            ],
+          }),
+        };
+
+        function syncAlgorithmSelect() {
+          pickerModels.algorithm.options = algorithms.map((algorithm) => ({
+            value: algorithm.id,
+            label: `${algorithm.displayName} · ${algorithm.category}`,
+          }));
+          pickerModels.algorithm.disabled = !pickerModels.algorithm.options.length;
+          pickerModels.algorithm.value = state.algorithmId || "";
+        }
+
+        function syncAnalysisVppSelect() {
+          pickerModels.analysisVpp.options = [
+            { value: analysisAllVpps, label: "全部 VPP" },
+            ...datasetIds.map((id) => ({
+              value: id,
+              label: visualMeta[id].title,
+            })),
+          ];
+          pickerModels.analysisVpp.disabled = !pickerModels.analysisVpp.options.length;
+          pickerModels.analysisVpp.value = state.analysisVpp;
+        }
+
+        function syncAnalysisHorizonSelect() {
+          pickerModels.analysisHorizon.value = String(state.analysisHorizon);
+        }
+
+        function renderVppAccessList() {
+          const yearData = MarketUI.yearData(state.year);
+          const summary = yearData?.summary;
+          if (!summary) {
+            elements.vppAccessList.innerHTML =
+              '<div class="rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-4 text-sm text-slate-400">暂无 VPP 接入数据</div>';
+            return;
+          }
+
+          const rows = MarketUI.sourceRows(summary);
+          const visibleRows =
+            state.analysisVpp === analysisAllVpps
+              ? rows
+              : rows.filter((row) => row.id === state.analysisVpp);
+
+          if (!visibleRows.length) {
+            elements.vppAccessList.innerHTML =
+              '<div class="rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-4 text-sm text-slate-400">当前分析对象暂无接入信息</div>';
+            return;
+          }
+
+          elements.vppAccessList.innerHTML = visibleRows
+            .map((row) => {
+              const meta = visualMeta[row.id] || {};
+              return `
+                <div class="compact-access-card rounded-2xl bg-slate-950/50 border border-slate-800">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                      <span class="w-3 h-3 rounded-full" style="background:${row.color}"></span>
+                      <div>
+                        <div class="text-sm font-semibold text-slate-100">${row.id}</div>
+                        <div class="text-xs text-slate-500">${meta.title || row.name}</div>
+                      </div>
+                    </div>
+                    <div class="text-xs text-slate-500">${row.status || "已接入"}</div>
+                  </div>
+                  <div class="compact-access-grid grid grid-cols-3 text-xs">
+                    <div>
+                      <div class="text-slate-500">资源</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${meta.source || row.source || "--"}</div>
+                    </div>
+                    <div>
+                      <div class="text-slate-500">平均出力</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${number(row.avgPower || 0, 2)} MW</div>
+                    </div>
+                    <div>
+                      <div class="text-slate-500">收益</div>
+                      <div class="mt-1 text-slate-200 font-semibold">${number(row.revenue || 0, 2)} 万元</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            })
+            .join("");
         }
 
         function syncMarketDateSelector() {
-          const dates = getMarketDatesByYear(state.year);
+          const dates = marketDates;
           if (!dates.length) {
-            elements.dateSelector.innerHTML = "";
+            state.date = "";
+            pickerModels.marketDate.value = "";
+            pickerModels.marketDate.disabled = true;
+            pickerModels.marketDate.allowedDateSet = new Set();
             return;
           }
           if (!dates.includes(state.date)) {
             state.date = dates[dates.length - 1];
           }
-          elements.dateSelector.innerHTML = dates
-            .map((date) => `<option value="${date}">${date}</option>`)
-            .join("");
-          elements.dateSelector.value = state.date;
+          state.year = normalizeYear(Number(state.date.slice(0, 4)));
+          pickerModels.marketDate.disabled = false;
+          pickerModels.marketDate.allowedDateSet = new Set(dates);
+          pickerModels.marketDate.value = state.date;
           localStorage.setItem("marketSelectedDate", state.date);
           localStorage.setItem("marketSelectedYear", String(state.year));
         }
@@ -951,10 +1164,6 @@
 
         function formatRevenueValue(value) {
           if (value === null || value === undefined || Number.isNaN(value)) return "--";
-          const abs = Math.abs(value);
-          if (abs >= 10000) {
-            return `${formatSimple(value / 10000, 2)} 万`;
-          }
           return formatSimple(value, 0);
         }
 
@@ -1272,79 +1481,11 @@
         }
 
         function populateSelectors() {
-          if (marketYears.length) {
-            elements.yearSelector.innerHTML = marketYears
-              .map((year) => `<option value="${year}">${year}年</option>`)
-              .join("");
-            elements.yearSelector.value = String(state.year);
-          } else {
-            elements.yearSelector.innerHTML = '<option value="">暂无市场年份</option>';
-          }
-          elements.yearSelector.addEventListener("change", () => {
-            state.year = normalizeYear(elements.yearSelector.value);
-            syncMarketDateSelector();
-            render();
-          });
-
           syncMarketDateSelector();
-          elements.dateSelector.addEventListener("change", () => {
-            state.date = elements.dateSelector.value;
-            localStorage.setItem("marketSelectedDate", state.date);
-            state.year = normalizeYear(Number(state.date.slice(0, 4)));
-            localStorage.setItem("marketSelectedYear", String(state.year));
-            elements.yearSelector.value = String(state.year);
-            render();
-          });
-
-          if (algorithms.length) {
-            elements.algorithmSelector.innerHTML = algorithms
-              .map(
-                (algorithm) =>
-                  `<option value="${algorithm.id}">${algorithm.displayName} · ${algorithm.category}</option>`
-              )
-              .join("");
-            elements.algorithmSelector.value = state.algorithmId;
-          } else {
-            elements.algorithmSelector.innerHTML = '<option value="">暂无算法配置</option>';
-          }
-          elements.algorithmSelector.addEventListener("change", () => {
-            state.algorithmId = normalizeAlgorithmId(elements.algorithmSelector.value);
-            localStorage.setItem(storageKeys.algorithm, state.algorithmId);
-            renderAlgorithmSection();
-          });
-
-          elements.analysisVppSelector.innerHTML = [
-            `<option value="${analysisAllVpps}">全部 VPP</option>`,
-            ...datasetIds.map(
-              (id) => `<option value="${id}">${visualMeta[id].title}</option>`
-            ),
-          ].join("");
-          elements.analysisVppSelector.value = state.analysisVpp;
-          elements.analysisVppSelector.addEventListener("change", () => {
-            state.analysisVpp = normalizeAnalysisVpp(elements.analysisVppSelector.value);
-            localStorage.setItem(storageKeys.analysisVpp, state.analysisVpp);
-            syncAnalysisDateSelector();
-            renderSimulationSection();
-          });
-
-          elements.analysisHorizonSelector.value = String(state.analysisHorizon);
-          elements.analysisHorizonSelector.addEventListener("change", () => {
-            state.analysisHorizon = Number(elements.analysisHorizonSelector.value);
-            localStorage.setItem(
-              storageKeys.analysisHorizon,
-              String(state.analysisHorizon)
-            );
-            syncAnalysisDateSelector();
-            renderSimulationSection();
-          });
-
+          syncAlgorithmSelect();
+          syncAnalysisVppSelect();
+          syncAnalysisHorizonSelect();
           syncAnalysisDateSelector();
-
-          elements.analysisDateSelector.addEventListener("change", () => {
-            state.analysisDate = elements.analysisDateSelector.value;
-            localStorage.setItem(storageKeys.analysisDate, state.analysisDate);
-            renderSimulationSection();
-          });
         }
 
         function syncAnalysisDateSelector() {
@@ -1354,17 +1495,191 @@
           );
           if (!dates.length) {
             state.analysisDate = "";
-            elements.analysisDateSelector.innerHTML = '<option value="">暂无仿真日期</option>';
+            pickerModels.analysisDate.value = "";
+            pickerModels.analysisDate.disabled = true;
+            pickerModels.analysisDate.allowedDateSet = new Set();
             return;
           }
           if (!dates.includes(state.analysisDate)) {
             state.analysisDate = dates[Math.max(dates.length - 1, 0)];
             localStorage.setItem(storageKeys.analysisDate, state.analysisDate);
           }
-          elements.analysisDateSelector.innerHTML = dates
-            .map((date) => `<option value="${date}">${date}</option>`)
-            .join("");
-          elements.analysisDateSelector.value = state.analysisDate;
+          pickerModels.analysisDate.disabled = false;
+          pickerModels.analysisDate.allowedDateSet = new Set(dates);
+          pickerModels.analysisDate.value = state.analysisDate;
+        }
+
+        function mountPickerApps() {
+          const pickerLocale = window.ElementPlusLocaleZhCn || {};
+          const pluginConfig = { locale: pickerLocale };
+
+          Vue.createApp({
+            data: () => pickerModels.marketDate,
+            methods: {
+              disabledDate(time) {
+                return !pickerModels.marketDate.allowedDateSet.has(formatPickerDate(time));
+              },
+              handleChange(value) {
+                if (!value) return;
+                state.date = normalizeDate(value);
+                syncMarketDateSelector();
+                render();
+              },
+            },
+            template: `
+              <el-date-picker
+                v-model="value"
+                type="date"
+                class="overview-picker"
+                placeholder="选择市场日期"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+                :clearable="false"
+                :editable="false"
+                :disabled="disabled"
+                :disabled-date="disabledDate"
+                popper-class="overview-picker-popper"
+                @change="handleChange"
+              />
+            `,
+          })
+            .use(ElementPlus, pluginConfig)
+            .mount("#datePickerApp");
+
+          Vue.createApp({
+            data: () => pickerModels.analysisDate,
+            methods: {
+              disabledDate(time) {
+                return !pickerModels.analysisDate.allowedDateSet.has(formatPickerDate(time));
+              },
+              handleChange(value) {
+                if (!value) return;
+                state.analysisDate = value;
+                syncAnalysisDateSelector();
+                localStorage.setItem(storageKeys.analysisDate, state.analysisDate);
+                renderSimulationSection();
+              },
+            },
+            template: `
+              <el-date-picker
+                v-model="value"
+                type="date"
+                class="overview-picker"
+                placeholder="选择仿真日期"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+                :clearable="false"
+                :editable="false"
+                :disabled="disabled"
+                :disabled-date="disabledDate"
+                popper-class="overview-picker-popper"
+                @change="handleChange"
+              />
+            `,
+          })
+            .use(ElementPlus, pluginConfig)
+            .mount("#analysisDatePickerApp");
+
+          Vue.createApp({
+            data: () => pickerModels.algorithm,
+            methods: {
+              handleChange(value) {
+                state.algorithmId = normalizeAlgorithmId(value);
+                syncAlgorithmSelect();
+                localStorage.setItem(storageKeys.algorithm, state.algorithmId);
+                renderAlgorithmSection();
+              },
+            },
+            template: `
+              <el-select
+                v-model="value"
+                class="overview-select"
+                placeholder="选择策略算法"
+                :clearable="false"
+                :disabled="disabled"
+                popper-class="overview-select-popper"
+                @change="handleChange"
+              >
+                <el-option
+                  v-for="option in options"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            `,
+          })
+            .use(ElementPlus, pluginConfig)
+            .mount("#algorithmSelectApp");
+
+          Vue.createApp({
+            data: () => pickerModels.analysisVpp,
+            methods: {
+              handleChange(value) {
+                state.analysisVpp = normalizeAnalysisVpp(value);
+                syncAnalysisVppSelect();
+                localStorage.setItem(storageKeys.analysisVpp, state.analysisVpp);
+                syncAnalysisDateSelector();
+                renderSimulationSection();
+              },
+            },
+            template: `
+              <el-select
+                v-model="value"
+                class="overview-select"
+                placeholder="选择分析对象"
+                :clearable="false"
+                :disabled="disabled"
+                popper-class="overview-select-popper"
+                @change="handleChange"
+              >
+                <el-option
+                  v-for="option in options"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            `,
+          })
+            .use(ElementPlus, pluginConfig)
+            .mount("#analysisVppSelectApp");
+
+          Vue.createApp({
+            data: () => pickerModels.analysisHorizon,
+            methods: {
+              handleChange(value) {
+                state.analysisHorizon = Number(value);
+                syncAnalysisHorizonSelect();
+                localStorage.setItem(
+                  storageKeys.analysisHorizon,
+                  String(state.analysisHorizon)
+                );
+                syncAnalysisDateSelector();
+                renderSimulationSection();
+              },
+            },
+            template: `
+              <el-select
+                v-model="value"
+                class="overview-select"
+                placeholder="选择区间"
+                :clearable="false"
+                :disabled="disabled"
+                popper-class="overview-select-popper"
+                @change="handleChange"
+              >
+                <el-option
+                  v-for="option in options"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            `,
+          })
+            .use(ElementPlus, pluginConfig)
+            .mount("#analysisHorizonSelectApp");
         }
 
         function renderMarketSection() {
@@ -1391,7 +1706,6 @@
             );
             setText(elements.headerGeneratedAt, `更新时间 ${marketData.generatedAt || "--"}`);
             elements.marketBriefBody.innerHTML = "";
-            elements.vppAccessList.innerHTML = "";
             charts.marketDaily.clear();
             charts.marketStructure.clear();
             return;
@@ -1429,7 +1743,7 @@
             `${state.year} 年 · ${formatSimple(summary.count, 0)} 个样本点 · 峰谷价差 ${number(
               summary.maxPrice - summary.minPrice,
               2
-            )} €/MWh`
+            )} 元/MWh`
           );
           setText(elements.marketDateLabel, state.date);
           setText(elements.marketGeneratedAt, marketData.generatedAt || "--");
@@ -1462,45 +1776,8 @@
                   <td>${row.id}</td>
                   <td>${row.source}</td>
                   <td>${number(row.annualEnergy, 2)} GWh</td>
-                  <td style="color:${row.color}">${number(revenueItem?.value || 0, 2)} 万€</td>
+                  <td style="color:${row.color}">${number(revenueItem?.value || 0, 2)} 万元</td>
                 </tr>
-              `;
-            })
-            .join("");
-
-          elements.vppAccessList.innerHTML = vpps
-            .map((vpp, index) => {
-              const row = rows[index] || {};
-              return `
-                <div class="rounded-2xl bg-slate-950/50 border border-slate-800 px-4 py-3">
-                  <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                      <span class="w-3 h-3 rounded-full" style="background:${vpp.color}"></span>
-                      <div>
-                        <div class="text-sm font-semibold text-slate-100">${vpp.id}</div>
-                        <div class="text-xs text-slate-500">${vpp.name}</div>
-                      </div>
-                    </div>
-                    <div class="text-xs text-slate-500">${row.status || "已接入"}</div>
-                  </div>
-                  <div class="mt-3 grid grid-cols-3 gap-3 text-xs">
-                    <div>
-                      <div class="text-slate-500">资源</div>
-                      <div class="mt-1 text-slate-200 font-semibold">${row.source || vpp.source}</div>
-                    </div>
-                    <div>
-                      <div class="text-slate-500">平均出力</div>
-                      <div class="mt-1 text-slate-200 font-semibold">${number(row.avgPower || 0, 1)} MW</div>
-                    </div>
-                    <div>
-                      <div class="text-slate-500">收益</div>
-                      <div class="mt-1 text-slate-200 font-semibold">${number(
-                        (annualRevenueByVpp.find((item) => item.id === vpp.id) || {}).value || 0,
-                        1
-                      )} 万€</div>
-                    </div>
-                  </div>
-                </div>
               `;
             })
             .join("");
@@ -1532,7 +1809,7 @@
                 },
                 {
                   type: "value",
-                  name: "€/MWh",
+                  name: "元/MWh",
                   nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
                   axisLabel: { color: MarketUI.chartText },
                   splitLine: { show: false },
@@ -1608,7 +1885,7 @@
                 },
                 {
                   type: "value",
-                  name: "€/MWh",
+                  name: "元/MWh",
                   nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
                   axisLabel: { color: MarketUI.chartText },
                   splitLine: { show: false },
@@ -1718,23 +1995,6 @@
             elements.algorithmParamCount,
             `${(algorithm.parameters || []).length} 项`
           );
-          setText(
-            elements.algorithmTimeline1,
-            `${algorithmName === "--" ? "当前算法" : algorithmName}面向${algorithm.objective || "市场报价收益优化"}，直接与市场数据页面的年度/日内口径对齐。`
-          );
-          setText(
-            elements.algorithmTimeline2,
-            `动作定义为 ${algorithm.actionDefinition || "未配置"}，与仿真页中的投标量、调度量和储能 SOC 联动。`
-          );
-          setText(
-            elements.algorithmTimeline3,
-            `训练预算 ${algorithm.trainingBudget || "--"} 回合，关键参数包含学习率、折扣因子与策略裁剪。`
-          );
-          setText(
-            elements.algorithmTimeline4,
-            `映射到 VPP 参数时，优先读取算法配置页参数；缺失时回退到基础数据中的 VPP 静态字段。`
-          );
-
           charts.trainingSummary.setOption(
             {
               backgroundColor: "transparent",
@@ -1818,8 +2078,6 @@
             state.analysisVpp === analysisAllVpps
               ? "全部 VPP 聚合"
               : visualMeta[state.analysisVpp]?.title || state.analysisVpp;
-          const columnText = model.columns.join(", ");
-
           setText(elements.metricSimulationRevenue, formatRevenueValue(model.totalRevenue));
           setText(
             elements.metricSimulationNote,
@@ -1876,50 +2134,33 @@
               .map((file) => String(file).split("/").pop())
               .join(" / ") || "--"
           );
-          setText(elements.visualGeneratedAt, visualData.generatedAt || "--");
-          setText(elements.visualSource, visualData.source || "--");
-          setText(elements.visualSelectedVpp, selectedTitle);
-          setText(elements.visualColumns, columnText || "--");
           setText(
             elements.sidebarVisualSource,
             `仿真数据源: ${visualData.source || "--"}`
           );
-          setText(
-            elements.analysisTimeline1,
-            `${state.analysisHorizon} 天区间共 ${model.slots.length} 个 15 分钟刻度，直接由仿真 Excel 日切片拼接。`
-          );
-          setText(
-            elements.analysisTimeline2,
-            "调度量按照 发电量 + 储能电量变化 计算，储能功率由 SOC 差分换算。"
-          );
-          setText(
-            elements.analysisTimeline3,
-            state.analysisVpp === analysisAllVpps
-              ? "聚合视图下发电、投标、SOC 和调度量按所有 VPP 求和，电价按有效记录取均值。"
-              : `${selectedTitle} 采用原始列 ${columnText || "--"}，保留缺失时段，不做插值补点。`
-          );
-          setText(
-            elements.analysisTimeline4,
-            "累计收益口径为 调度量 × 电价，便于与仿真分析页中的收益辅助视图保持一致。"
-          );
-
-          elements.analysisDatasetBody.innerHTML = Object.entries(visualDatasets)
-            .map(([id, dataset]) => {
-              return `
-                <tr>
-                  <td>${id}</td>
-                  <td>${formatCount(dataset.rowCount)}</td>
-                  <td>${formatCount(dataset.dayCount)}</td>
-                  <td>${(dataset.columns || []).join(", ")}</td>
-                </tr>
-              `;
-            })
-            .join("");
+          renderVppAccessList();
 
           charts.analysisOverview.setOption(
             {
               backgroundColor: "transparent",
-              tooltip: { trigger: "axis" },
+              tooltip: {
+                trigger: "axis",
+                formatter(params) {
+                  const list = Array.isArray(params) ? params : [params];
+                  const first = list[0];
+                  const slot = first ? model.slots[first.dataIndex] : null;
+                  const title = slot ? `${slot.date} ${slot.time}` : "";
+                  const lines = list.map((item) => {
+                    const value =
+                      item.value === null || item.value === undefined || Number.isNaN(item.value)
+                        ? "--"
+                        : formatSimple(Number(item.value), 2);
+                    const unit = item.seriesName === "累计收益" ? " 元" : " MW";
+                    return `${item.marker}${item.seriesName}: ${value === "--" ? value : `${value}${unit}`}`;
+                  });
+                  return [title, ...lines].filter(Boolean).join("<br/>");
+                },
+              },
               legend: {
                 top: 8,
                 textStyle: { color: "#cbd5e1" },
@@ -1948,14 +2189,24 @@
                   type: "value",
                   name: "MWh / MW",
                   nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
-                  axisLabel: { color: MarketUI.chartText },
+                  axisLabel: {
+                    color: MarketUI.chartText,
+                    formatter(value) {
+                      return formatSimple(value, 2);
+                    },
+                  },
                   splitLine: MarketUI.dashedGrid,
                 },
                 {
                   type: "value",
-                  name: "收益",
+                  name: "收益（元）",
                   nameTextStyle: { color: MarketUI.chartText, fontWeight: 700 },
-                  axisLabel: { color: MarketUI.chartText },
+                  axisLabel: {
+                    color: MarketUI.chartText,
+                    formatter(value) {
+                      return `${formatSimple(value, 2)} 元`;
+                    },
+                  },
                   splitLine: { show: false },
                 },
               ],
@@ -2009,9 +2260,40 @@
           renderSimulationSection();
         }
 
+        function registerExports() {
+          const ChartExport = window.ChartExport;
+          const Builders = window.ChartExportBuilders;
+          if (!ChartExport || !Builders) return;
+
+          ChartExport.register({
+            key: "marketDaily",
+            filename: "市场15分钟出力与电价_全部日期",
+            build: () => Builders.marketDailyFull(marketData),
+          });
+          ChartExport.register({
+            key: "marketMonthly",
+            filename: "月度市场结构_全部年份",
+            build: () => Builders.marketMonthlyFull(marketData),
+          });
+          ChartExport.register({
+            key: "trainingCurves",
+            filename: "训练曲线_全部回合",
+            build: () => Builders.trainingCurvesFull(trainingCurveSource),
+          });
+          ChartExport.register({
+            key: "vppOperation",
+            filename: "VPP运行明细_全部VPP全部日期",
+            build: () => Builders.vppOperationFull(visualData),
+          });
+
+          ChartExport.mount();
+        }
+
+        mountPickerApps();
         populateSelectors();
         window.SystemAccess.mountUserPanel("sessionPanel");
         render();
+        registerExports();
 
         window.addEventListener("resize", () => {
           Object.values(charts).forEach((chart) => chart.resize());
