@@ -180,4 +180,30 @@
       charts.forEach((chart) => chart.resize());
     });
   }
+
+  window.AnalysisTrainingCurves = { curveData, epochs };
+
+  // 训练曲线本身不受页面筛选影响，导出即全量：51 个回合 × 3 个 VPP
+  const ChartExport = window.ChartExport;
+  const Builders = window.ChartExportBuilders;
+  if (ChartExport && Builders) {
+    ChartExport.register({
+      key: "trainingCurves",
+      filename: "训练曲线_奖励MAE_MBE_全部回合",
+      build: () => Builders.trainingCurvesFull(curveData),
+    });
+    [
+      ["trainingReward", "reward", "奖励训练曲线_全部回合"],
+      ["trainingMae", "mae", "MAE训练曲线_全部回合"],
+      ["trainingMbe", "mbe", "MBE训练曲线_全部回合"],
+    ].forEach(([key, metric, filename]) => {
+      ChartExport.register({
+        key,
+        filename,
+        build: () =>
+          Builders.trainingCurvesFull({ [metric]: curveData[metric] }),
+      });
+    });
+    ChartExport.mount();
+  }
 })();
