@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="assets/system-access.js"></script>
+    <script src="assets/chart-export.js"></script>
+    <script src="assets/chart-export-builders.js"></script>
     <script>
       window.SystemAccess.requireAuth("analysis.html");
     </script>
@@ -403,7 +405,10 @@
         <div class="text-xl font-semibold tracking-tight text-slate-100">
           电力系统报价平台
         </div>
-        <div class="justify-self-end" id="sessionPanel"></div>
+        <div class="justify-self-end flex items-center gap-3">
+          <div data-chart-export-all="vppOperation,trainingCurves" data-label="导出数据"></div>
+          <div id="sessionPanel"></div>
+        </div>
         <!-- <div class="text-sm text-slate-400">
           Excel 日切片结果驱动的 VPP 投标与储能运行分析
         </div> -->
@@ -604,6 +609,12 @@
 
           <div class="p-4 space-y-4">
             <article class="chart-card">
+              <div class="flex items-center justify-between gap-4 border-b border-slate-700/70 px-4 py-3">
+                <p class="text-sm text-slate-400">
+                  导出不受上方日期、区间与 VPP 选择影响，始终为全部 VPP 全年 15 分钟明细。
+                </p>
+                <div class="shrink-0" data-chart-export="vppOperation"></div>
+              </div>
               <div class="px-4 py-4">
                 <div class="chart-host" id="analysisPrimaryChart"></div>
               </div>
@@ -663,16 +674,17 @@
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
               训练曲线分析
             </h3>
-            <p class="hidden xl:block text-sm text-slate-400">
-              <!-- 基于原始 SVG 训练结果重绘奖励、MAE 与 MBE 收敛曲线 -->
-            </p>
+            <div data-chart-export="trainingCurves" data-label="导出三条曲线完整CSV"></div>
           </div>
 
           <div class="p-4 space-y-4">
             <div class="grid grid-cols-12 gap-4">
               <article class="col-span-12 xl:col-span-4 chart-card">
                 <div class="border-b border-slate-700/70 px-4 py-4">
-                  <h3 class="text-lg font-semibold text-slate-50">奖励训练曲线</h3>
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-lg font-semibold text-slate-50">奖励训练曲线</h3>
+                    <div class="shrink-0" data-chart-export="trainingReward" data-label="导出CSV"></div>
+                  </div>
                   <p class="mt-1 text-sm leading-6 text-slate-400">
                     对比三类 VPP 策略在训练阶段的收益收敛速度与稳定性。
                   </p>
@@ -684,7 +696,10 @@
 
               <article class="col-span-12 xl:col-span-4 chart-card">
                 <div class="border-b border-slate-700/70 px-4 py-4">
-                  <h3 class="text-lg font-semibold text-slate-50">MAE 训练曲线</h3>
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-lg font-semibold text-slate-50">MAE 训练曲线</h3>
+                    <div class="shrink-0" data-chart-export="trainingMae" data-label="导出CSV"></div>
+                  </div>
                   <p class="mt-1 text-sm leading-6 text-slate-400">
                     衡量日前报量对新能源真实出力的跟踪精度，曲线越低越好。
                   </p>
@@ -696,7 +711,10 @@
 
               <article class="col-span-12 xl:col-span-4 chart-card">
                 <div class="border-b border-slate-700/70 px-4 py-4">
-                  <h3 class="text-lg font-semibold text-slate-50">MBE 训练曲线</h3>
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-lg font-semibold text-slate-50">MBE 训练曲线</h3>
+                    <div class="shrink-0" data-chart-export="trainingMbe" data-label="导出CSV"></div>
+                  </div>
                   <p class="mt-1 text-sm leading-6 text-slate-400">
                     反映实时调度执行与日前申报之间的偏差水平，曲线越低越稳。
                   </p>
@@ -746,6 +764,17 @@
           window.createAnalysisVisualization(visualData);
 
         window.SystemAccess.mountUserPanel("sessionPanel");
+
+        // 运行视图导出：不取当前日期/区间/VPP/标签页的切片，直接导全量明细
+        if (window.ChartExport && window.ChartExportBuilders) {
+          window.ChartExport.register({
+            key: "vppOperation",
+            filename: "VPP运行明细_全部VPP全部日期",
+            build: () => window.ChartExportBuilders.vppOperationFull(visualData),
+          });
+          window.ChartExport.mount();
+        }
+
         const { createApp, reactive } = Vue;
         const analysis = window.AnalysisVisualization;
         if (!analysis) return;
